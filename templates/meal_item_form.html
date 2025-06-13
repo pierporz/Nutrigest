@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Modifica Alimento</h1>
+<form method="post">
+  <div class="mb-2">
+    <label class="form-label">Alimento</label>
+    <select name="food_id" class="form-select">
+      {% for food in foods %}
+        <option value="{{ food['id'] }}" {% if row['food_id'] == food['id'] %}selected{% endif %}>{{ food['name'] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Grammi</label>
+    <input name="grams" class="form-control" value="{{ row['grams'] }}">
+  </div>
+  <button class="btn btn-primary">Salva</button>
+  <a class="btn btn-secondary" href="/patient/{{ patient_id }}/meal_plan">Annulla</a>
+</form>
+{% endblock %}

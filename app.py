@@ -122,6 +122,7 @@ def del_food(fid):
 @app.route('/patient/<int:pid>')
 def patient_detail(pid):
     vid = request.args.get('visit')
+    edit = request.args.get('edit')
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     visits = con.execute('SELECT * FROM visits WHERE patient_id=? ORDER BY date DESC', (pid,)).fetchall()
@@ -132,7 +133,7 @@ def patient_detail(pid):
         visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
     con.close()
     return render_template('patient_detail.html', patient=patient, visits=visits,
-                           visit=visit, measures=measures, goals=goals)
+                           visit=visit, measures=measures, goals=goals, edit=edit)
 
 
 @app.route('/patient/<int:pid>/visit', methods=['GET', 'POST'])
@@ -177,6 +178,29 @@ def edit_visit(pid, vid):
     return redirect(url_for('patient_detail', pid=pid, visit=vid))
 
 
+@app.route('/patient/<int:pid>/goals', methods=['GET', 'POST'])
+def edit_goals(pid):
+    con = get_db()
+    if request.method == 'POST':
+        calories = request.form.get('calories')
+        cho = request.form.get('cho_percent')
+        pro = request.form.get('pro_percent')
+        fat = request.form.get('fat_percent')
+        if con.execute('SELECT id FROM obiettivi WHERE patient_id=?', (pid,)).fetchone():
+            con.execute('''UPDATE obiettivi SET calories=?, cho_percent=?, pro_percent=?, fat_percent=?
+                           WHERE patient_id=?''',
+                        (calories, cho, pro, fat, pid))
+        else:
+            con.execute('''INSERT INTO obiettivi (patient_id, calories, cho_percent, pro_percent, fat_percent)
+                           VALUES (?,?,?,?,?)''', (pid, calories, cho, pro, fat))
+        con.commit()
+        con.close()
+        return redirect(url_for('patient_detail', pid=pid))
+    goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
+    con.close()
+    return render_template('goals_form.html', patient_id=pid, goals=goals)
+
+
 DAYS = [f'Giorno{i}' for i in range(1, 8)]
 MEALS = ['Colazione', 'Spuntino', 'Pranzo', 'Merenda', 'Cena']
 
@@ -189,11 +213,12 @@ def meal_plan(pid):
     if request.method == 'POST':
         for day in DAYS:
             for meal in MEALS:
-                fid = request.form.get(f'food_{day}_{meal}')
-                grams = request.form.get(f'gram_{day}_{meal}')
-                if fid and grams:
-                    con.execute('INSERT INTO meal_plans (patient_id, food_id, grams, day, meal) VALUES (?,?,?,?,?)',
-                                (pid, fid, grams, day, meal))
+                fids = request.form.getlist(f'food_{day}_{meal}[]')
+                grams_list = request.form.getlist(f'gram_{day}_{meal}[]')
+                for fid, grams in zip(fids, grams_list):
+                    if fid and grams:
+                        con.execute('INSERT INTO meal_plans (patient_id, food_id, grams, day, meal) VALUES (?,?,?,?,?)',
+                                    (pid, fid, grams, day, meal))
         con.commit()
     # read existing plan
     plan = {(d, m): [] for d in DAYS for m in MEALS}
@@ -204,6 +229,31 @@ def meal_plan(pid):
         plan[(r['day'], r['meal'])].append(r)
     con.close()
     return render_template('meal_plan.html', patient=patient, days=DAYS, meals=MEALS, foods=foods, plan=plan)
+
+
+@app.route('/patient/<int:pid>/meal_plan/delete/<int:mid>', methods=['POST'])
+def delete_meal_item(pid, mid):
+    con = get_db()
+    con.execute('DELETE FROM meal_plans WHERE id=?', (mid,))
+    con.commit()
+    con.close()
+    return redirect(url_for('meal_plan', pid=pid))
+
+
+@app.route('/patient/<int:pid>/meal_plan/edit/<int:mid>', methods=['GET', 'POST'])
+def edit_meal_item(pid, mid):
+    con = get_db()
+    if request.method == 'POST':
+        food_id = request.form.get('food_id')
+        grams = request.form.get('grams')
+        con.execute('UPDATE meal_plans SET food_id=?, grams=? WHERE id=?', (food_id, grams, mid))
+        con.commit()
+        con.close()
+        return redirect(url_for('meal_plan', pid=pid))
+    foods = con.execute('SELECT * FROM foods').fetchall()
+    row = con.execute('SELECT * FROM meal_plans WHERE id=?', (mid,)).fetchone()
+    con.close()
+    return render_template('meal_item_form.html', patient_id=pid, row=row, foods=foods)
 
 
 if __name__ == '__main__':

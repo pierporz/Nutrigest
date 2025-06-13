@@ -39,16 +39,22 @@
 <p>Nessun obiettivo impostato</p>
 {% endif %}
 <a class="btn btn-sm btn-primary" href="/patient/{{patient['id']}}/meal_plan">Apri piano</a>
+<a class="btn btn-sm btn-secondary" href="/patient/{{patient['id']}}/goals">Obiettivi</a>
 </div>
 </div>
 {% if visit %}
 <div class="row mt-4">
 <div class="col">
 <h4>Dettaglio visita {{ visit['date'] }}</h4>
-<form method="post" action="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">
-<textarea name="notes" class="form-control" rows="10">{{ visit['notes'] }}</textarea>
-<button class="btn btn-primary mt-2" type="submit">Aggiorna</button>
-</form>
+{% if edit %}
+  <form method="post" action="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">
+  <textarea name="notes" class="form-control" rows="10">{{ visit['notes'] }}</textarea>
+  <button class="btn btn-primary mt-2" type="submit">Aggiorna</button>
+  </form>
+{% else %}
+  <div class="border p-2" style="white-space:pre-wrap;">{{ visit['notes']|safe }}</div>
+  <a class="btn btn-sm btn-secondary mt-2" href="/patient/{{patient['id']}}?visit={{visit['id']}}&edit=1">Modifica note</a>
+{% endif %}
 </div>
 </div>
 {% endif %}

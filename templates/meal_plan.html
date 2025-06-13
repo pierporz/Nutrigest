@@ -15,7 +15,7 @@
 {% for meal in meals %}
 <h5>{{ meal }}</h5>
 <table class="table table-sm">
-<tr><th>Alimento</th><th>Gr</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th></tr>
+<tr><th>Alimento</th><th>Gr</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th><th></th></tr>
 {% for row in plan[(day,meal)] %}
 <tr>
 <td>{{ row['name'] }}</td>
@@ -24,18 +24,29 @@
 <td>{{ row['carbs'] }}</td>
 <td>{{ row['protein'] }}</td>
 <td>{{ row['fat'] }}</td>
+<td>
+  <a class="btn btn-sm btn-secondary" href="/patient/{{patient['id']}}/meal_plan/edit/{{row['id']}}">Modifica</a>
+  <form method="post" action="/patient/{{patient['id']}}/meal_plan/delete/{{row['id']}}" style="display:inline">
+    <button class="btn btn-sm btn-danger">Elimina</button>
+  </form>
+</td>
 </tr>
 {% endfor %}
-<tr>
-<td><select name="food_{{day}}_{{meal}}" class="form-select">
+<tr class="add-row">
+<td><select name="food_{{day}}_{{meal}}[]" class="form-select">
 <option value="">--</option>
 {% for food in foods %}
-<option value="{{food['id']}}">{{food['name']}}</option>
+<option value="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}">{{food['name']}}</option>
 {% endfor %}
 </select></td>
-<td><input name="gram_{{day}}_{{meal}}" class="form-control"></td>
-<td colspan="4"></td>
+<td><input name="gram_{{day}}_{{meal}}[]" class="form-control"></td>
+<td class="kcal"></td>
+<td class="carbs"></td>
+<td class="protein"></td>
+<td class="fat"></td>
+<td></td>
 </tr>
+<tr><td colspan="7"><button type="button" class="btn btn-sm btn-secondary" onclick="addRow(this)">Aggiungi riga</button></td></tr>
 </table>
 {% endfor %}
 </div>
@@ -44,4 +55,37 @@
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/patient/{{ patient['id'] }}">Torna</a>
 </form>
+<script>
+function addRow(btn) {
+  const table = btn.closest('table');
+  const row = table.querySelector('tr.add-row');
+  const clone = row.cloneNode(true);
+  clone.querySelectorAll('input').forEach(i => i.value = '');
+  table.insertBefore(clone, btn.closest('tr'));
+  updateMacros(clone);
+}
+function updateMacros(row) {
+  const sel = row.querySelector('select');
+  const grams = parseFloat(row.querySelector('input').value) || 0;
+  const opt = sel.options[sel.selectedIndex];
+  const kcal = parseFloat(opt.dataset.kcal || 0) * grams / 100;
+  const carbs = parseFloat(opt.dataset.carbs || 0) * grams / 100;
+  const pro = parseFloat(opt.dataset.protein || 0) * grams / 100;
+  const fat = parseFloat(opt.dataset.fat || 0) * grams / 100;
+  row.querySelector('.kcal').textContent = kcal ? kcal.toFixed(1) : '';
+  row.querySelector('.carbs').textContent = carbs ? carbs.toFixed(1) : '';
+  row.querySelector('.protein').textContent = pro ? pro.toFixed(1) : '';
+  row.querySelector('.fat').textContent = fat ? fat.toFixed(1) : '';
+}
+document.addEventListener('input', e => {
+  if (e.target.matches('tr.add-row input')) {
+    updateMacros(e.target.closest('tr'));
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.matches('tr.add-row select')) {
+    updateMacros(e.target.closest('tr'));
+  }
+});
+</script>
 {% endblock %}
