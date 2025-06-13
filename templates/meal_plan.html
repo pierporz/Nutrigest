@@ -2,6 +2,8 @@
 {% block content %}
 <h1>Piano Nutrizionale {{ patient['name'] }}</h1>
 <form method="post">
+<div class="row">
+<div class="col-md-9">
 <ul class="nav nav-tabs" id="dayTabs" role="tablist">
 {% for day in days %}
 <li class="nav-item" role="presentation">
@@ -11,10 +13,11 @@
 </ul>
 <div class="tab-content border p-3">
 {% for day in days %}
-<div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tab{{loop.index}}">
+<div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tab{{loop.index}}" data-day="{{day}}">
+<div class="text-end mb-2 day-summary"></div>
 {% for meal in meals %}
 <h5>{{ meal }}</h5>
-<table class="table table-sm">
+<table class="table table-sm" data-meal="{{meal}}">
 <tr><th>Alimento</th><th>Gr</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th><th></th></tr>
 {% for row in plan[(day,meal)] %}
 <tr>
@@ -33,12 +36,15 @@
 </tr>
 {% endfor %}
 <tr class="add-row">
-<td><select name="food_{{day}}_{{meal}}[]" class="form-select">
-<option value="">--</option>
-{% for food in foods %}
-<option value="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}">{{food['name']}}</option>
-{% endfor %}
-</select></td>
+<td>
+  <input type="text" class="form-control form-control-sm food-search mb-1" placeholder="Filtra">
+  <select name="food_{{day}}_{{meal}}[]" class="form-select">
+  <option value="">--</option>
+  {% for food in foods %}
+  <option value="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}">{{food['name']}} ({{food['kcal']}}kcal C{{food['carbs']}} P{{food['protein']}} F{{food['fat']}})</option>
+  {% endfor %}
+  </select>
+</td>
 <td><input name="gram_{{day}}_{{meal}}[]" class="form-control"></td>
 <td class="kcal"></td>
 <td class="carbs"></td>
@@ -47,21 +53,30 @@
 <td></td>
 </tr>
 <tr><td colspan="7"><button type="button" class="btn btn-sm btn-secondary" onclick="addRow(this)">Aggiungi riga</button></td></tr>
+<tr class="meal-summary"><td colspan="7" class="text-end small"></td></tr>
 </table>
 {% endfor %}
 </div>
 {% endfor %}
 </div>
+</div>
+<div class="col-md-3">
+  <div id="goal-summary" class="border p-2"></div>
+</div>
+</div>
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/patient/{{ patient['id'] }}">Torna</a>
 </form>
 <script>
+const goals = {{ goals|tojson }};
 function addRow(btn) {
   const table = btn.closest('table');
   const row = table.querySelector('tr.add-row');
   const clone = row.cloneNode(true);
   clone.querySelectorAll('input').forEach(i => i.value = '');
+  clone.querySelector('select').selectedIndex = 0;
   table.insertBefore(clone, btn.closest('tr'));
+  setupFilter(clone);
   updateMacros(clone);
 }
 function updateMacros(row) {
@@ -76,6 +91,7 @@ function updateMacros(row) {
   row.querySelector('.carbs').textContent = carbs ? carbs.toFixed(1) : '';
   row.querySelector('.protein').textContent = pro ? pro.toFixed(1) : '';
   row.querySelector('.fat').textContent = fat ? fat.toFixed(1) : '';
+  computeTotals();
 }
 document.addEventListener('input', e => {
   if (e.target.matches('tr.add-row input')) {
@@ -87,5 +103,51 @@ document.addEventListener('change', e => {
     updateMacros(e.target.closest('tr'));
   }
 });
+function setupFilter(row) {
+  const inp = row.querySelector('.food-search');
+  if (!inp) return;
+  const sel = row.querySelector('select');
+  inp.addEventListener('input', () => {
+    const f = inp.value.toLowerCase();
+    for (const opt of sel.options) {
+      opt.style.display = opt.text.toLowerCase().includes(f) ? '' : 'none';
+    }
+  });
+}
+function computeTotals() {
+  document.querySelectorAll('.tab-pane').forEach(pane => {
+    let dayTot = {kcal:0,carbs:0,protein:0,fat:0};
+    pane.querySelectorAll('table').forEach(table => {
+      let mealTot = {kcal:0,carbs:0,protein:0,fat:0};
+      table.querySelectorAll('tr.add-row').forEach(row => {
+        mealTot.kcal += parseFloat(row.querySelector('.kcal').textContent)||0;
+        mealTot.carbs += parseFloat(row.querySelector('.carbs').textContent)||0;
+        mealTot.protein += parseFloat(row.querySelector('.protein').textContent)||0;
+        mealTot.fat += parseFloat(row.querySelector('.fat').textContent)||0;
+      });
+      dayTot.kcal += mealTot.kcal;
+      dayTot.carbs += mealTot.carbs;
+      dayTot.protein += mealTot.protein;
+      dayTot.fat += mealTot.fat;
+      const mrow = table.querySelector('.meal-summary td');
+      if (mrow) {
+        mrow.textContent = `Totale: ${mealTot.kcal.toFixed(1)} kcal CHO ${mealTot.carbs.toFixed(1)}g PRO ${mealTot.protein.toFixed(1)}g FAT ${mealTot.fat.toFixed(1)}g`;
+      }
+    });
+    const dsum = pane.querySelector('.day-summary');
+    if (dsum) {
+      dsum.textContent = `Totale giorno: ${dayTot.kcal.toFixed(1)} kcal CHO ${dayTot.carbs.toFixed(1)}g PRO ${dayTot.protein.toFixed(1)}g FAT ${dayTot.fat.toFixed(1)}g`;
+    }
+  });
+  const active = document.querySelector('.tab-pane.active');
+  if (active) {
+    document.getElementById('goal-summary').innerHTML =
+      `<div><b>Obiettivi:</b> ${goals.calories} kcal CHO ${goals.cho_g.toFixed(1)}g PRO ${goals.pro_g.toFixed(1)}g FAT ${goals.fat_g.toFixed(1)}g</div>` +
+      `<div>${active.querySelector('.day-summary').textContent}</div>`;
+  }
+}
+document.querySelectorAll('tr.add-row').forEach(setupFilter);
+computeTotals();
+document.getElementById('dayTabs').addEventListener('shown.bs.tab', computeTotals);
 </script>
 {% endblock %}

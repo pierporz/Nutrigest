@@ -128,6 +128,17 @@ def patient_detail(pid):
     visits = con.execute('SELECT * FROM visits WHERE patient_id=? ORDER BY date DESC', (pid,)).fetchall()
     measures = con.execute('SELECT date, weight, waist, hip FROM visits WHERE patient_id=? ORDER BY date', (pid,)).fetchall()
     goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
+    goals_grams = None
+    if goals:
+        goals_grams = {
+            'calories': goals['calories'],
+            'cho_g': goals['calories'] * goals['cho_percent'] / 100 / 4,
+            'pro_g': goals['calories'] * goals['pro_percent'] / 100 / 4,
+            'fat_g': goals['calories'] * goals['fat_percent'] / 100 / 9,
+            'cho_percent': goals['cho_percent'],
+            'pro_percent': goals['pro_percent'],
+            'fat_percent': goals['fat_percent'],
+        }
     visit = None
     if vid:
         visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
@@ -210,6 +221,7 @@ def meal_plan(pid):
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     foods = con.execute('SELECT * FROM foods').fetchall()
+    goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
     if request.method == 'POST':
         for day in DAYS:
             for meal in MEALS:
@@ -222,13 +234,26 @@ def meal_plan(pid):
         con.commit()
     # read existing plan
     plan = {(d, m): [] for d in DAYS for m in MEALS}
-    rows = con.execute('''SELECT meal_plans.*, foods.name, foods.kcal, foods.carbs, foods.protein, foods.fat
+    summary = {d: {'kcal':0,'carbs':0,'protein':0,'fat':0,
+                    'meals':{m:{'kcal':0,'carbs':0,'protein':0,'fat':0} for m in MEALS}}
+              for d in DAYS}
+    rows = con.execute('''SELECT meal_plans.*, foods.name,
+                           foods.kcal * meal_plans.grams / 100 AS kcal,
+                           foods.carbs * meal_plans.grams / 100 AS carbs,
+                           foods.protein * meal_plans.grams / 100 AS protein,
+                           foods.fat * meal_plans.grams / 100 AS fat
                            FROM meal_plans JOIN foods ON meal_plans.food_id = foods.id
                            WHERE patient_id=?''', (pid,)).fetchall()
     for r in rows:
         plan[(r['day'], r['meal'])].append(r)
+        d = summary[r['day']]
+        m = d['meals'][r['meal']]
+        for key in ('kcal','carbs','protein','fat'):
+            d[key] += r[key]
+            m[key] += r[key]
     con.close()
-    return render_template('meal_plan.html', patient=patient, days=DAYS, meals=MEALS, foods=foods, plan=plan)
+    return render_template('meal_plan.html', patient=patient, days=DAYS, meals=MEALS,
+                           foods=foods, plan=plan, goals=goals_grams, summary=summary)
 
 
 @app.route('/patient/<int:pid>/meal_plan/delete/<int:mid>', methods=['POST'])
