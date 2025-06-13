@@ -9,16 +9,39 @@
   <div class="mb-2">
     <label class="form-label">CHO %</label>
     <input name="cho_percent" type="number" step="0.1" class="form-control" value="{{ goals['cho_percent'] if goals else '' }}">
+    <input id="cho_g" class="form-control mt-1" readonly>
   </div>
   <div class="mb-2">
     <label class="form-label">PRO %</label>
     <input name="pro_percent" type="number" step="0.1" class="form-control" value="{{ goals['pro_percent'] if goals else '' }}">
+    <input id="pro_g" class="form-control mt-1" readonly>
   </div>
   <div class="mb-2">
     <label class="form-label">FAT %</label>
     <input name="fat_percent" type="number" step="0.1" class="form-control" value="{{ goals['fat_percent'] if goals else '' }}">
+    <input id="fat_g" class="form-control mt-1" readonly>
   </div>
   <button class="btn btn-primary">Salva</button>
   <a class="btn btn-secondary" href="/patient/{{ patient_id }}">Annulla</a>
 </form>
+<script>
+function updateGrams() {
+  const kcal = parseFloat(document.querySelector('[name=calories]').value) || 0;
+  const choP = parseFloat(document.querySelector('[name=cho_percent]').value) || 0;
+  const proP = parseFloat(document.querySelector('[name=pro_percent]').value) || 0;
+  const fatP = parseFloat(document.querySelector('[name=fat_percent]').value) || 0;
+  document.getElementById('cho_g').value = (kcal * choP / 100 / 4).toFixed(1);
+  document.getElementById('pro_g').value = (kcal * proP / 100 / 4).toFixed(1);
+  document.getElementById('fat_g').value = (kcal * fatP / 100 / 9).toFixed(1);
+}
+updateGrams();
+document.querySelectorAll('input').forEach(i => i.addEventListener('input', updateGrams));
+document.querySelector('form').addEventListener('submit', function(e){
+  const total = ['cho_percent','pro_percent','fat_percent'].reduce((s,n)=>s+parseFloat(document.querySelector('[name='+n+']').value||0),0);
+  if (Math.round(total*10)/10 !== 100) {
+    e.preventDefault();
+    alert('La somma delle percentuali deve essere 100');
+  }
+});
+</script>
 {% endblock %}
