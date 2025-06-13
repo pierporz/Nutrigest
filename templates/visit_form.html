@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Nuova visita</h1>
+<form method="post">
+<div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{today}}"></div>
+<h3>Note precedenti</h3>
+<div class="mb-3 border p-2">{{ last_notes|safe }}</div>
+<h3>Nuove note</h3>
+<div id="notes">
+<div class="mb-2"><input name="title1" class="form-control mb-1" placeholder="Titolo"><textarea name="desc1" class="form-control" placeholder="Descrizione"></textarea></div>
+</div>
+<h3>Misure</h3>
+<div class="row g-2">
+<div class="col"><input name="weight" class="form-control" placeholder="Peso"></div>
+<div class="col"><input name="waist" class="form-control" placeholder="Girovita"></div>
+<div class="col"><input name="hip" class="form-control" placeholder="Fianchi"></div>
+</div>
+<button class="btn btn-primary mt-2" type="submit">Salva</button>
+<a class="btn btn-secondary mt-2" href="/">Annulla</a>
+</form>
+{% endblock %}

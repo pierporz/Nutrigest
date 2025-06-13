@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS visits (
     patient_id INTEGER NOT NULL,
     date DATE,
     notes TEXT,
+    weight REAL,
+    waist REAL,
+    hip REAL,
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 
@@ -28,7 +31,6 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    question_type TEXT NOT NULL
     text TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS foods (

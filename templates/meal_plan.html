@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Piano Nutrizionale {{ patient['name'] }}</h1>
+<form method="post">
+<ul class="nav nav-tabs" id="dayTabs" role="tablist">
+{% for day in days %}
+<li class="nav-item" role="presentation">
+  <button class="nav-link {% if loop.first %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab{{loop.index}}" type="button">{{day}}</button>
+</li>
+{% endfor %}
+</ul>
+<div class="tab-content border p-3">
+{% for day in days %}
+<div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="tab{{loop.index}}">
+{% for meal in meals %}
+<h5>{{ meal }}</h5>
+<table class="table table-sm">
+<tr><th>Alimento</th><th>Gr</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th></tr>
+{% for row in plan[(day,meal)] %}
+<tr>
+<td>{{ row['name'] }}</td>
+<td>{{ row['grams'] }}</td>
+<td>{{ row['kcal'] }}</td>
+<td>{{ row['carbs'] }}</td>
+<td>{{ row['protein'] }}</td>
+<td>{{ row['fat'] }}</td>
+</tr>
+{% endfor %}
+<tr>
+<td><select name="food_{{day}}_{{meal}}" class="form-select">
+<option value="">--</option>
+{% for food in foods %}
+<option value="{{food['id']}}">{{food['name']}}</option>
+{% endfor %}
+</select></td>
+<td><input name="gram_{{day}}_{{meal}}" class="form-control"></td>
+<td colspan="4"></td>
+</tr>
+</table>
+{% endfor %}
+</div>
+{% endfor %}
+</div>
+<button class="btn btn-primary mt-2" type="submit">Salva</button>
+<a class="btn btn-secondary mt-2" href="/patient/{{ patient['id'] }}">Torna</a>
+</form>
+{% endblock %}

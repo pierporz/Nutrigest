@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ patient['name'] }}</h1>
+<div class="row">
+<div class="col-md-4">
+<h4>Dati</h4>
+<ul class="list-unstyled">
+<li>Email: {{ patient['email'] }}</li>
+<li>Telefono: {{ patient['phone'] }}</li>
+<li>Cod. Fiscale: {{ patient['fiscal_code'] }}</li>
+</ul>
+<h4>Misure</h4>
+<table class="table table-sm">
+<tr><th>Data</th><th>Peso</th><th>Girovita</th><th>Fianchi</th></tr>
+{% for v in measures %}
+<tr><td>{{v['date']}}</td><td>{{v['weight']}}</td><td>{{v['waist']}}</td><td>{{v['hip']}}</td></tr>
+{% endfor %}
+</table>
+</div>
+<div class="col-md-8">
+<h4>Visite</h4>
+<table class="table table-sm">
+<tr><th>Data</th><th>Azioni</th></tr>
+{% for v in visits %}
+<tr>
+<td>{{v['date']}}</td>
+<td><a class="btn btn-sm btn-info" href="/patient/{{patient['id']}}/visit/{{v['id']}}">Mostra</a></td>
+</tr>
+{% endfor %}
+</table>
+{% if visit %}
+<h4>Dettaglio visita {{ visit['date'] }}</h4>
+<form method="post" action="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">
+<textarea name="notes" class="form-control" rows="10">{{ visit['notes'] }}</textarea>
+<button class="btn btn-primary mt-2" type="submit">Aggiorna</button>
+</form>
+{% endif %}
+</div>
+</div>
+<a class="btn btn-secondary mt-2" href="/">Indietro</a>
+{% endblock %}
