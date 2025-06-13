@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Obiettivi</h1>
+<form method="post">
+<div class="mb-2"><label class="form-label">Calorie</label>
+<input name="calories" class="form-control" type="number" value="{{ goals['calories'] if goals else '' }}" required></div>
+<div class="mb-2"><label class="form-label">CHO %</label>
+<input name="cho" class="form-control" type="number" step="0.1" value="{{ goals['cho_percent'] if goals else '' }}"></div>
+<div class="mb-2"><label class="form-label">PRO %</label>
+<input name="pro" class="form-control" type="number" step="0.1" value="{{ goals['pro_percent'] if goals else '' }}"></div>
+<div class="mb-2"><label class="form-label">FAT %</label>
+<input name="fat" class="form-control" type="number" step="0.1" value="{{ goals['fat_percent'] if goals else '' }}"></div>
+<button class="btn btn-primary" type="submit">Salva</button>
+<a class="btn btn-secondary" href="/patient/{{ patient_id }}">Annulla</a>
+</form>
+{% endblock %}
