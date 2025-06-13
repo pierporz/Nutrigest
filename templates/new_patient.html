@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Nuovo Paziente</h1>
+<form method="post">
+<div class="mb-2">
+<label class="form-label">Nome e Cognome</label>
+<input name="name" class="form-control" required>
+</div>
+<div class="mb-2">
+<label class="form-label">Codice Fiscale</label>
+<input name="fiscal_code" class="form-control">
+</div>
+<div class="mb-2">
+<label class="form-label">Data di nascita</label>
+<input type="date" name="birthdate" class="form-control">
+</div>
+<div class="mb-2">
+<label class="form-label">Email</label>
+<input name="email" class="form-control">
+</div>
+<div class="mb-2">
+<label class="form-label">Telefono</label>
+<input name="phone" class="form-control">
+</div>
+<h3>Anamnesi</h3>
+{% for q in questions %}
+<div class="mb-2">
+<label class="form-label">{{ q['text'] }}</label>
+<input name="q{{ q['id'] }}" class="form-control">
+</div>
+{% endfor %}
+<h3>Misure iniziali</h3>
+<div class="mb-2"><label>Peso</label><input name="weight" class="form-control"></div>
+<div class="mb-2"><label>Girovita</label><input name="waist" class="form-control"></div>
+<div class="mb-2"><label>Fianchi</label><input name="hip" class="form-control"></div>
+<button class="btn btn-primary" type="submit">Salva</button>
+<a class="btn btn-secondary" href="/">Annulla</a>
+</form>
+{% endblock %}

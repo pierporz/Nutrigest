@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Lista Pazienti</h1>
+<a class="btn btn-primary" href="/new_patient">Nuovo Paziente</a>
+<a class="btn btn-secondary" href="/foods">Alimenti</a>
+<a class="btn btn-secondary" href="/questions">Domande</a>
+<table class="table table-striped mt-3">
+<tr><th>Nome</th><th>Telefono</th><th>Azioni</th></tr>
+{% for p in patients %}
+<tr>
+<td>{{ p['name'] }}</td>
+<td>{{ p['phone'] or '' }}</td>
+<td>
+<a class="btn btn-sm btn-success" href="/patient/{{p['id']}}/visit">Nuova visita</a>
+<a class="btn btn-sm btn-info" href="/patient/{{p['id']}}">Dettagli</a>
+</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

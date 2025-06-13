@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Domande</h1>
+<form method="post" class="mb-3" action="/questions/add">
+<div class="input-group">
+<input name="text" class="form-control" placeholder="Nuova domanda" required>
+<button class="btn btn-primary">Aggiungi</button>
+</div>
+</form>
+<table class="table table-striped">
+<tr><th>Testo</th><th>Azioni</th></tr>
+{% for q in questions %}
+<tr>
+<td>{{ q['text'] }}</td>
+<td>
+<form method="post" action="/questions/delete/{{q['id']}}" style="display:inline">
+<button class="btn btn-danger btn-sm">Elimina</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+<a class="btn btn-secondary" href="/">Torna</a>
+{% endblock %}
