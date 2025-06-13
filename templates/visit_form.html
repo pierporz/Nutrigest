@@ -3,11 +3,18 @@
 <h1>Nuova visita</h1>
 <form method="post">
 <div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{today}}"></div>
-<h3>Note precedenti</h3>
-<div class="mb-3 border p-2">{{ last_notes|safe }}</div>
-<h3>Nuove note</h3>
-<div id="notes">
-<div class="mb-2"><input name="title1" class="form-control mb-1" placeholder="Titolo"><textarea name="desc1" class="form-control" placeholder="Descrizione"></textarea></div>
+<div class="row">
+  <div class="col-md-6">
+    <h3>Nuove note</h3>
+    <div id="notes">
+      <div class="mb-2"><input name="title1" class="form-control mb-1" placeholder="Titolo"><textarea name="desc1" class="form-control" placeholder="Descrizione"></textarea></div>
+    </div>
+    <button class="btn btn-sm btn-secondary mt-2" type="button" onclick="addNote()">Aggiungi nota</button>
+  </div>
+  <div class="col-md-6">
+    <h3>Note precedenti</h3>
+    <div class="mb-3 border p-2" style="min-height:100px;">{{ last_notes|safe }}</div>
+  </div>
 </div>
 <h3>Misure</h3>
 <div class="row g-2">
@@ -18,4 +25,15 @@
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/">Annulla</a>
 </form>
+<script>
+let noteIdx = 2;
+function addNote() {
+  const container = document.getElementById('notes');
+  const div = document.createElement('div');
+  div.className = 'mb-2';
+  div.innerHTML = `<input name="title${noteIdx}" class="form-control mb-1" placeholder="Titolo"><textarea name="desc${noteIdx}" class="form-control" placeholder="Descrizione"></textarea>`;
+  container.appendChild(div);
+  noteIdx++;
+}
+</script>
 {% endblock %}

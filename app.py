@@ -21,9 +21,6 @@ def init_db():
     conn.close()
 
 
-@app.before_first_request
-def setup():
-    init_db()
 
 
 @app.route('/')
@@ -129,11 +126,13 @@ def patient_detail(pid):
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     visits = con.execute('SELECT * FROM visits WHERE patient_id=? ORDER BY date DESC', (pid,)).fetchall()
     measures = con.execute('SELECT date, weight, waist, hip FROM visits WHERE patient_id=? ORDER BY date', (pid,)).fetchall()
+    goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
     visit = None
     if vid:
         visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
     con.close()
-    return render_template('patient_detail.html', patient=patient, visits=visits, visit=visit, measures=measures)
+    return render_template('patient_detail.html', patient=patient, visits=visits,
+                           visit=visit, measures=measures, goals=goals)
 
 
 @app.route('/patient/<int:pid>/visit', methods=['GET', 'POST'])
@@ -166,12 +165,6 @@ def new_visit(pid):
     return render_template('visit_form.html', today=date.today().isoformat(), last_notes=last_notes)
 
 
-@app.route('/patient/<int:pid>/visit/<int:vid>')
-def show_visit(pid, vid):
-    con = get_db()
-    visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
-    con.close()
-    return render_template('patient_detail.html', patient={'id': pid}, visits=[], visit=visit, measures=[])
 
 
 @app.route('/patient/<int:pid>/visit/<int:vid>/edit', methods=['POST'])
@@ -214,4 +207,5 @@ def meal_plan(pid):
 
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True)

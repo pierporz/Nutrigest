@@ -20,22 +20,37 @@
 <div class="col-md-8">
 <h4>Visite</h4>
 <table class="table table-sm">
-<tr><th>Data</th><th>Azioni</th></tr>
+<tr><th>Data</th></tr>
 {% for v in visits %}
 <tr>
-<td>{{v['date']}}</td>
-<td><a class="btn btn-sm btn-info" href="/patient/{{patient['id']}}/visit/{{v['id']}}">Mostra</a></td>
+<td><a href="/patient/{{patient['id']}}?visit={{v['id']}}">{{v['date']}}</a></td>
 </tr>
 {% endfor %}
 </table>
+<h4>Piano Nutrizionale</h4>
+{% if goals %}
+<ul class="list-unstyled">
+  <li>Calorie: {{ goals['calories'] }}</li>
+  <li>CHO %: {{ goals['cho_percent'] }}</li>
+  <li>PRO %: {{ goals['pro_percent'] }}</li>
+  <li>FAT %: {{ goals['fat_percent'] }}</li>
+</ul>
+{% else %}
+<p>Nessun obiettivo impostato</p>
+{% endif %}
+<a class="btn btn-sm btn-primary" href="/patient/{{patient['id']}}/meal_plan">Apri piano</a>
+</div>
+</div>
 {% if visit %}
+<div class="row mt-4">
+<div class="col">
 <h4>Dettaglio visita {{ visit['date'] }}</h4>
 <form method="post" action="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">
 <textarea name="notes" class="form-control" rows="10">{{ visit['notes'] }}</textarea>
 <button class="btn btn-primary mt-2" type="submit">Aggiorna</button>
 </form>
+</div>
+</div>
 {% endif %}
-</div>
-</div>
 <a class="btn btn-secondary mt-2" href="/">Indietro</a>
 {% endblock %}
