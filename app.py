@@ -221,7 +221,18 @@ def meal_plan(pid):
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     foods = con.execute('SELECT * FROM foods').fetchall()
-    goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
+    goals_row = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
+    goals_grams = None
+    if goals_row:
+        goals_grams = {
+            'calories': goals_row['calories'],
+            'cho_g': goals_row['calories'] * goals_row['cho_percent'] / 100 / 4,
+            'pro_g': goals_row['calories'] * goals_row['pro_percent'] / 100 / 4,
+            'fat_g': goals_row['calories'] * goals_row['fat_percent'] / 100 / 9,
+            'cho_percent': goals_row['cho_percent'],
+            'pro_percent': goals_row['pro_percent'],
+            'fat_percent': goals_row['fat_percent'],
+        }
     if request.method == 'POST':
         for day in DAYS:
             for meal in MEALS:
