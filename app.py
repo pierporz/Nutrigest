@@ -21,9 +21,6 @@ def init_db():
     conn.close()
 
 
-@app.before_first_request
-def setup():
-    init_db()
 
 
 @app.route('/')
@@ -214,4 +211,5 @@ def meal_plan(pid):
 
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True)
