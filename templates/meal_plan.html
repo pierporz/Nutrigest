@@ -20,7 +20,7 @@
 <table class="table table-sm" data-meal="{{meal}}">
 <tr><th>Alimento</th><th>Gr</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th><th></th></tr>
 {% for row in plan[(day,meal)] %}
-<tr>
+<tr class="existing-row" data-kcal="{{ row['kcal'] }}" data-carbs="{{ row['carbs'] }}" data-protein="{{ row['protein'] }}" data-fat="{{ row['fat'] }}">
 <td>{{ row['name'] }}</td>
 <td>{{ row['grams'] }}</td>
 <td>{{ row['kcal'] }}</td>
@@ -119,11 +119,24 @@ function computeTotals() {
     let dayTot = {kcal:0,carbs:0,protein:0,fat:0};
     pane.querySelectorAll('table').forEach(table => {
       let mealTot = {kcal:0,carbs:0,protein:0,fat:0};
-      table.querySelectorAll('tr.add-row').forEach(row => {
-        mealTot.kcal += parseFloat(row.querySelector('.kcal').textContent)||0;
-        mealTot.carbs += parseFloat(row.querySelector('.carbs').textContent)||0;
-        mealTot.protein += parseFloat(row.querySelector('.protein').textContent)||0;
-        mealTot.fat += parseFloat(row.querySelector('.fat').textContent)||0;
+      table.querySelectorAll('tr').forEach(row => {
+        if (row.querySelector('th') || row.classList.contains('meal-summary')) return;
+        let kcal=0,carbs=0,protein=0,fat=0;
+        if (row.classList.contains('add-row')) {
+          kcal = parseFloat(row.querySelector('.kcal').textContent)||0;
+          carbs = parseFloat(row.querySelector('.carbs').textContent)||0;
+          protein = parseFloat(row.querySelector('.protein').textContent)||0;
+          fat = parseFloat(row.querySelector('.fat').textContent)||0;
+        } else {
+          kcal = parseFloat(row.dataset.kcal)||0;
+          carbs = parseFloat(row.dataset.carbs)||0;
+          protein = parseFloat(row.dataset.protein)||0;
+          fat = parseFloat(row.dataset.fat)||0;
+        }
+        mealTot.kcal += kcal;
+        mealTot.carbs += carbs;
+        mealTot.protein += protein;
+        mealTot.fat += fat;
       });
       dayTot.kcal += mealTot.kcal;
       dayTot.carbs += mealTot.carbs;
@@ -131,7 +144,14 @@ function computeTotals() {
       dayTot.fat += mealTot.fat;
       const mrow = table.querySelector('.meal-summary td');
       if (mrow) {
-        mrow.textContent = `Totale: ${mealTot.kcal.toFixed(1)} kcal CHO ${mealTot.carbs.toFixed(1)}g PRO ${mealTot.protein.toFixed(1)}g FAT ${mealTot.fat.toFixed(1)}g`;
+        const bars = ['kcal','carbs','protein','fat'].map(k => {
+          const goal = goals[k==='kcal' ? 'calories' : k==='carbs' ? 'cho_g' : k==='protein' ? 'pro_g' : 'fat_g'];
+          const val = mealTot[k];
+          const pct = goal ? Math.min(100, val/goal*100) : 0;
+          const label = k === 'kcal' ? 'Kcal' : k.toUpperCase();
+          return `<div class="mb-1"><small>${label}: ${val.toFixed(1)} / ${goal}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
+        }).join('');
+        mrow.innerHTML = `Totale: ${mealTot.kcal.toFixed(1)} kcal CHO ${mealTot.carbs.toFixed(1)}g PRO ${mealTot.protein.toFixed(1)}g FAT ${mealTot.fat.toFixed(1)}g` + bars;
       }
     });
     const dsum = pane.querySelector('.day-summary');
@@ -141,9 +161,18 @@ function computeTotals() {
   });
   const active = document.querySelector('.tab-pane.active');
   if (active) {
+    const dayText = active.querySelector('.day-summary').textContent;
+    const dayTotals = dayText.match(/([\d\.]+)/g)||[];
+    const bars = ['calories','cho_g','pro_g','fat_g'].map((g,i)=>{
+      const val = parseFloat(dayTotals[i])||0;
+      const goal = goals[g];
+      const lbl = g==='calories'?'Kcal':g==='cho_g'?'CHO':g==='pro_g'?'PRO':'FAT';
+      const pct = goal?Math.min(100,val/goal*100):0;
+      return `<div class="mb-1"><small>${lbl}: ${val.toFixed(1)} / ${goal}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
+    }).join('');
     document.getElementById('goal-summary').innerHTML =
-      `<div><b>Obiettivi:</b> ${goals.calories} kcal CHO ${goals.cho_g.toFixed(1)}g PRO ${goals.pro_g.toFixed(1)}g FAT ${goals.fat_g.toFixed(1)}g</div>` +
-      `<div>${active.querySelector('.day-summary').textContent}</div>`;
+      `<div><b>Obiettivi:</b> ${goals.calories} kcal CHO ${goals.cho_g.toFixed(1)}g PRO ${goals.pro_g.toFixed(1)}g FAT ${goals.fat_g.toFixed(1)}g</div>`+
+      `<div>${dayText}</div>`+bars;
   }
 }
 document.querySelectorAll('tr.add-row').forEach(setupFilter);
