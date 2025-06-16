@@ -4,17 +4,52 @@
 <a class="btn btn-primary" href="/new_patient">Nuovo Paziente</a>
 <a class="btn btn-secondary" href="/foods">Alimenti</a>
 <a class="btn btn-secondary" href="/questions">Domande</a>
-<table class="table table-striped mt-3">
-<tr><th>Nome</th><th>Telefono</th><th>Azioni</th></tr>
-{% for p in patients %}
-<tr>
-<td>{{ p['name'] }}</td>
-<td>{{ p['phone'] or '' }}</td>
-<td>
-<a class="btn btn-sm btn-success" href="/patient/{{p['id']}}/visit">Nuova visita</a>
-<a class="btn btn-sm btn-info" href="/patient/{{p['id']}}">Dettagli</a>
-</td>
-</tr>
-{% endfor %}
+<table class="table table-striped mt-3" id="patients-table">
+    <thead>
+    <tr>
+        <th>Nome<br><input class="form-control form-control-sm filter" data-col="0"></th>
+        <th>Nascita<br><input class="form-control form-control-sm filter" data-col="1"></th>
+        <th>Email<br><input class="form-control form-control-sm filter" data-col="2"></th>
+        <th>Telefono<br><input class="form-control form-control-sm filter" data-col="3"></th>
+        <th>Azioni</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for p in patients %}
+    <tr>
+        <td>{{ p['name'] }}</td>
+        <td>{{ p['birthdate'] or '' }}</td>
+        <td>{{ p['email'] or '' }}</td>
+        <td>{{ p['phone'] or '' }}</td>
+        <td>
+            <a class="btn btn-sm btn-success" href="/patient/{{p['id']}}/visit">Nuova visita</a>
+            <a class="btn btn-sm btn-info" href="/patient/{{p['id']}}">Dettagli</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
 </table>
+
+<script>
+function applyFilters() {
+    const filters = [];
+    document.querySelectorAll('#patients-table thead .filter').forEach((inp, i) => {
+        filters[i] = inp.value.toLowerCase();
+    });
+    document.querySelectorAll('#patients-table tbody tr').forEach(row => {
+        let show = true;
+        row.querySelectorAll('td').forEach((td, i) => {
+            const f = filters[i];
+            if (f && !td.textContent.toLowerCase().includes(f)) {
+                show = false;
+            }
+        });
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+document.querySelectorAll('#patients-table thead .filter').forEach(inp => {
+    inp.addEventListener('input', applyFilters);
+});
+</script>
 {% endblock %}
