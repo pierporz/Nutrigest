@@ -2,6 +2,11 @@
 {% block content %}
 <h1>Piano Nutrizionale {{ patient['name'] }}</h1>
 <form method="post">
+<datalist id="foodsList">
+  {% for food in foods %}
+  <option value="{{food['name']}}" data-id="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}"></option>
+  {% endfor %}
+</datalist>
 <div class="row">
 <div class="col-md-9">
 <ul class="nav nav-tabs" id="dayTabs" role="tablist">
@@ -37,22 +42,16 @@
 {% endfor %}
 <tr class="add-row">
 <td>
-  <input type="text" class="form-control form-control-sm food-search mb-1" placeholder="Filtra">
-  <select name="food_{{day}}_{{meal}}[]" class="form-select">
-  <option value="">--</option>
-  {% for food in foods %}
-  <option value="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}">{{food['name']}} ({{food['kcal']}}kcal C{{food['carbs']}} P{{food['protein']}} F{{food['fat']}})</option>
-  {% endfor %}
-  </select>
+  <input list="foodsList" class="form-control form-control-sm food-input">
+  <input type="hidden" name="food_{{day}}_{{meal}}[]" class="food-id">
 </td>
-<td><input name="gram_{{day}}_{{meal}}[]" class="form-control"></td>
+<td><input name="gram_{{day}}_{{meal}}[]" class="form-control gram-input"></td>
 <td class="kcal"></td>
 <td class="carbs"></td>
 <td class="protein"></td>
 <td class="fat"></td>
-<td></td>
+<td><button type="button" class="btn btn-sm btn-success add-btn">+</button></td>
 </tr>
-<tr><td colspan="7"><button type="button" class="btn btn-sm btn-secondary" onclick="addRow(this)">Aggiungi riga</button></td></tr>
 </table>
 {% endfor %}
 </div>
@@ -70,23 +69,26 @@
 <script>
 const goals = {{ goals|tojson }};
 function addRow(btn) {
-  const table = btn.closest('table');
-  const row = table.querySelector('tr.add-row');
+  const row = btn.closest('tr');
   const clone = row.cloneNode(true);
   clone.querySelectorAll('input').forEach(i => i.value = '');
-  clone.querySelector('select').selectedIndex = 0;
-  table.insertBefore(clone, btn.closest('tr'));
-  setupFilter(clone);
+  row.parentNode.insertBefore(clone, row.nextSibling);
   updateMacros(clone);
 }
 function updateMacros(row) {
-  const sel = row.querySelector('select');
-  const grams = parseFloat(row.querySelector('input').value) || 0;
-  const opt = sel.options[sel.selectedIndex];
-  const kcal = parseFloat(opt.dataset.kcal || 0) * grams / 100;
-  const carbs = parseFloat(opt.dataset.carbs || 0) * grams / 100;
-  const pro = parseFloat(opt.dataset.protein || 0) * grams / 100;
-  const fat = parseFloat(opt.dataset.fat || 0) * grams / 100;
+  const input = row.querySelector('.food-input');
+  const grams = parseFloat(row.querySelector('.gram-input').value) || 0;
+  const opt = document.querySelector(`#foodsList option[value="${input.value}"]`);
+  let kcal=0,carbs=0,pro=0,fat=0;
+  if (opt) {
+    row.querySelector('.food-id').value = opt.dataset.id;
+    kcal = parseFloat(opt.dataset.kcal || 0) * grams / 100;
+    carbs = parseFloat(opt.dataset.carbs || 0) * grams / 100;
+    pro = parseFloat(opt.dataset.protein || 0) * grams / 100;
+    fat = parseFloat(opt.dataset.fat || 0) * grams / 100;
+  } else {
+    row.querySelector('.food-id').value = '';
+  }
   row.querySelector('.kcal').textContent = kcal ? kcal.toFixed(1) : '';
   row.querySelector('.carbs').textContent = carbs ? carbs.toFixed(1) : '';
   row.querySelector('.protein').textContent = pro ? pro.toFixed(1) : '';
@@ -94,26 +96,20 @@ function updateMacros(row) {
   computeTotals();
 }
 document.addEventListener('input', e => {
-  if (e.target.matches('tr.add-row input')) {
+  if (e.target.matches('.food-input') || e.target.matches('.gram-input')) {
     updateMacros(e.target.closest('tr'));
   }
 });
-document.addEventListener('change', e => {
-  if (e.target.matches('tr.add-row select')) {
-    updateMacros(e.target.closest('tr'));
+document.addEventListener('keydown', e => {
+  if ((e.target.matches('.food-input') || e.target.matches('.gram-input')) && e.key === 'Enter') {
+    e.preventDefault();
   }
 });
-function setupFilter(row) {
-  const inp = row.querySelector('.food-search');
-  if (!inp) return;
-  const sel = row.querySelector('select');
-  inp.addEventListener('input', () => {
-    const f = inp.value.toLowerCase();
-    for (const opt of sel.options) {
-      opt.style.display = opt.text.toLowerCase().includes(f) ? '' : 'none';
-    }
-  });
-}
+document.addEventListener('click', e => {
+  if (e.target.matches('.add-btn')) {
+    addRow(e.target);
+  }
+});
 function computeTotals() {
   document.querySelectorAll('.tab-pane').forEach(pane => {
     let dayTot = {kcal:0,carbs:0,protein:0,fat:0};
@@ -167,7 +163,12 @@ function computeTotals() {
     const mealHtml = Object.keys(mealTotals).map(m=>{
       const t = mealTotals[m];
       const pct = k=> dayTot[k] ? Math.round(t[k]/dayTot[k]*100) : 0;
-      return `<div><b>${m}</b>: Kcal ${pct('kcal')}% CHO ${pct('carbs')}% PRO ${pct('protein')}% FAT ${pct('fat')}%</div>`;
+      const bars = ['kcal','carbs','protein','fat'].map(k=>{
+        const lbl = k==='kcal'?'Kcal':k==='carbs'?'CHO':k==='protein'?'PRO':'FAT';
+        const p = pct(k);
+        return `<div class="mb-1"><small>${lbl}: ${p}%</small><div class="progress"><div class="progress-bar bg-info" style="width:${p}%"></div></div></div>`;
+      }).join('');
+      return `<div class="mb-2"><b>${m}</b>${bars}</div>`;
     }).join('');
     document.getElementById('goal-summary').innerHTML =
       `<div><b>Obiettivi:</b> ${Math.round(goals.calories)} kcal CHO ${Math.round(goals.cho_g)}g PRO ${Math.round(goals.pro_g)}g FAT ${Math.round(goals.fat_g)}g</div>`+
@@ -176,8 +177,15 @@ function computeTotals() {
     document.getElementById('meal-breakdown').innerHTML = mealHtml;
   }
 }
-document.querySelectorAll('tr.add-row').forEach(setupFilter);
 computeTotals();
-document.getElementById('dayTabs').addEventListener('shown.bs.tab', computeTotals);
+document.getElementById('dayTabs').addEventListener('shown.bs.tab', e => {
+  localStorage.setItem('activeDayTab', e.target.getAttribute('data-bs-target'));
+  computeTotals();
+});
+const saved = localStorage.getItem('activeDayTab');
+if (saved) {
+  const tab = document.querySelector(`[data-bs-target='${saved}']`);
+  if (tab) new bootstrap.Tab(tab).show();
+}
 </script>
 {% endblock %}
