@@ -115,7 +115,7 @@ def del_question(qid):
 def foods():
     back = request.args.get('back', '/')
     con = get_db()
-    fs = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
+    fs = con.execute('SELECT * FROM foods ORDER BY name COLLATE NOCASE').fetchall()
     con.close()
     return render_template('foods.html', foods=fs, back=back)
 
@@ -278,7 +278,7 @@ MEALS = ['Colazione', 'Spuntino', 'Pranzo', 'Merenda', 'Cena']
 def meal_plan(pid):
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
-    foods = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
+    foods = con.execute('SELECT * FROM foods ORDER BY name COLLATE NOCASE').fetchall()
     goals_row = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
     goals_grams = None
     if goals_row:
@@ -346,7 +346,7 @@ def edit_meal_item(pid, mid):
         con.commit()
         con.close()
         return redirect(url_for('meal_plan', pid=pid))
-    foods = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
+    foods = con.execute('SELECT * FROM foods ORDER BY name COLLATE NOCASE').fetchall()
     row = con.execute('SELECT * FROM meal_plans WHERE id=?', (mid,)).fetchone()
     con.close()
     return render_template('meal_item_form.html', patient_id=pid, row=row, foods=foods)

@@ -17,7 +17,10 @@
 </form>
 <input id="food-filter" class="form-control mb-2" placeholder="Filtra...">
 <table class="table table-striped" id="foods-table">
+<thead>
 <tr><th>Nome</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th><th>Azioni</th></tr>
+</thead>
+<tbody>
 {% for f in foods %}
 <tr>
 <td>{{f['name']}}</td><td>{{f['kcal']}}</td><td>{{f['carbs']}}</td><td>{{f['protein']}}</td><td>{{f['fat']}}</td>
@@ -29,6 +32,7 @@
 </td>
 </tr>
 {% endfor %}
+</tbody>
 </table>
 <div class="text-end">
   <a class="btn btn-secondary" href="{{ back }}">Torna</a>
