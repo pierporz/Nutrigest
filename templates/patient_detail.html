@@ -11,9 +11,17 @@
 </ul>
 <h4>Misure</h4>
 <table class="table table-sm">
-<tr><th>Data</th><th>Peso</th><th>Girovita</th><th>Fianchi</th></tr>
+<tr><th>Data</th><th>Peso</th><th>Girovita</th><th>Fianchi</th><th>Altezza</th><th>Ombelico</th><th>Altre</th></tr>
 {% for v in measures %}
-<tr><td>{{v['date']}}</td><td>{{v['weight']}}</td><td>{{v['waist']}}</td><td>{{v['hip']}}</td></tr>
+<tr>
+<td>{{v['date']}}</td>
+<td>{{v['weight']}}</td>
+<td>{{v['waist']}}</td>
+<td>{{v['hip']}}</td>
+<td>{{v['height']}}</td>
+<td>{{v['navel']}}</td>
+<td>{{v['custom']}}</td>
+</tr>
 {% endfor %}
 </table>
 </div>
@@ -46,15 +54,8 @@
 <div class="row mt-4">
 <div class="col">
 <h4>Dettaglio visita {{ visit['date'] }}</h4>
-{% if edit %}
-  <form method="post" action="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">
-  <textarea name="notes" class="form-control" rows="10">{{ visit['notes'] }}</textarea>
-  <button class="btn btn-primary mt-2" type="submit">Aggiorna</button>
-  </form>
-{% else %}
   <div class="border p-2" style="white-space:pre-wrap;">{{ visit['notes']|safe }}</div>
-  <a class="btn btn-sm btn-secondary mt-2" href="/patient/{{patient['id']}}?visit={{visit['id']}}&edit=1">Modifica note</a>
-{% endif %}
+  <a class="btn btn-sm btn-secondary mt-2" href="/patient/{{patient['id']}}/visit/{{visit['id']}}/edit">Modifica visita</a>
 </div>
 </div>
 {% endif %}
