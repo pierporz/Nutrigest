@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS visits (
     weight REAL,
     waist REAL,
     hip REAL,
+    height REAL,
+    navel REAL,
+    custom TEXT,
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 

@@ -21,6 +21,23 @@ def init_db():
     conn.close()
 
 
+def parse_notes(notes):
+    items = []
+    if not notes:
+        return items
+    for part in notes.split('<br>'):
+        if not part:
+            continue
+        title = ''
+        desc = part
+        if part.startswith('<b>') and '</b>' in part:
+            end = part.index('</b>')
+            title = part[3:end]
+            desc = part[end + 4:].strip()
+        items.append({'title': title, 'desc': desc})
+    return items
+
+
 
 
 @app.route('/')
@@ -43,6 +60,9 @@ def new_patient():
         weight = request.form.get('weight')
         waist = request.form.get('waist')
         hip = request.form.get('hip')
+        height = request.form.get('height')
+        navel = request.form.get('navel')
+        custom = request.form.get('custom')
         questions = con.execute('SELECT * FROM questions').fetchall()
         notes_parts = []
         for q in questions:
@@ -54,8 +74,8 @@ def new_patient():
         cur.execute('INSERT INTO patients (name, birthdate, email, phone, fiscal_code, anamnesis) VALUES (?,?,?,?,?,?)',
                     (name, birth, email, phone, fiscal, notes))
         pid = cur.lastrowid
-        cur.execute('INSERT INTO visits (patient_id, date, notes, weight, waist, hip) VALUES (?,?,?,?,?,?)',
-                    (pid, date.today(), notes, weight, waist, hip))
+        cur.execute('INSERT INTO visits (patient_id, date, notes, weight, waist, hip, height, navel, custom) VALUES (?,?,?,?,?,?,?,?,?)',
+                    (pid, date.today(), notes, weight, waist, hip, height, navel, custom))
         con.commit()
         con.close()
         return redirect(url_for('index'))
@@ -122,11 +142,10 @@ def del_food(fid):
 @app.route('/patient/<int:pid>')
 def patient_detail(pid):
     vid = request.args.get('visit')
-    edit = request.args.get('edit')
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     visits = con.execute('SELECT * FROM visits WHERE patient_id=? ORDER BY date DESC', (pid,)).fetchall()
-    measures = con.execute('SELECT date, weight, waist, hip FROM visits WHERE patient_id=? ORDER BY date', (pid,)).fetchall()
+    measures = con.execute('SELECT date, weight, waist, hip, height, navel, custom FROM visits WHERE patient_id=? ORDER BY date', (pid,)).fetchall()
     goals = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
     goals_grams = None
     if goals:
@@ -144,12 +163,13 @@ def patient_detail(pid):
         visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
     con.close()
     return render_template('patient_detail.html', patient=patient, visits=visits,
-                           visit=visit, measures=measures, goals=goals, edit=edit)
+                           visit=visit, measures=measures, goals=goals)
 
 
 @app.route('/patient/<int:pid>/visit', methods=['GET', 'POST'])
 def new_visit(pid):
     con = get_db()
+    patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
     last = con.execute('SELECT notes FROM visits WHERE patient_id=? ORDER BY date DESC LIMIT 1', (pid,)).fetchone()
     last_notes = last['notes'] if last else ''
     if request.method == 'POST':
@@ -157,6 +177,9 @@ def new_visit(pid):
         weight = request.form.get('weight')
         waist = request.form.get('waist')
         hip = request.form.get('hip')
+        height = request.form.get('height')
+        navel = request.form.get('navel')
+        custom = request.form.get('custom')
         notes = []
         idx = 1
         while True:
@@ -168,25 +191,53 @@ def new_visit(pid):
                 notes.append(f"<b>{title}</b> {desc}")
             idx += 1
         notes_str = '<br>'.join(notes)
-        con.execute('INSERT INTO visits (patient_id, date, notes, weight, waist, hip) VALUES (?,?,?,?,?,?)',
-                    (pid, vdate, notes_str, weight, waist, hip))
+        con.execute('INSERT INTO visits (patient_id, date, notes, weight, waist, hip, height, navel, custom) VALUES (?,?,?,?,?,?,?,?,?)',
+                    (pid, vdate, notes_str, weight, waist, hip, height, navel, custom))
         con.commit()
         con.close()
         return redirect(url_for('patient_detail', pid=pid))
     con.close()
-    return render_template('visit_form.html', today=date.today().isoformat(), last_notes=last_notes)
+    return render_template('visit_form.html', today=date.today().isoformat(), last_notes=last_notes, patient=patient, visit=None, notes=None)
 
 
 
 
-@app.route('/patient/<int:pid>/visit/<int:vid>/edit', methods=['POST'])
+@app.route('/patient/<int:pid>/visit/<int:vid>/edit', methods=['GET', 'POST'])
 def edit_visit(pid, vid):
-    notes = request.form['notes']
     con = get_db()
-    con.execute('UPDATE visits SET notes=? WHERE id=?', (notes, vid))
-    con.commit()
+    patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
+    if request.method == 'POST':
+        vdate = request.form.get('date') or date.today().isoformat()
+        weight = request.form.get('weight')
+        waist = request.form.get('waist')
+        hip = request.form.get('hip')
+        height = request.form.get('height')
+        navel = request.form.get('navel')
+        custom = request.form.get('custom')
+        notes = []
+        idx = 1
+        while True:
+            title = request.form.get(f'title{idx}')
+            desc = request.form.get(f'desc{idx}')
+            if not title and not desc:
+                break
+            if title or desc:
+                notes.append(f"<b>{title}</b> {desc}")
+            idx += 1
+        notes_str = '<br>'.join(notes)
+        con.execute('''UPDATE visits SET date=?, notes=?, weight=?, waist=?, hip=?, height=?, navel=?, custom=? WHERE id=?''',
+                    (vdate, notes_str, weight, waist, hip, height, navel, custom, vid))
+        con.commit()
+        con.close()
+        return redirect(url_for('patient_detail', pid=pid, visit=vid))
+    visit = con.execute('SELECT * FROM visits WHERE id=?', (vid,)).fetchone()
+    last = con.execute('SELECT notes FROM visits WHERE patient_id=? AND id!=? ORDER BY date DESC LIMIT 1',
+                       (pid, vid)).fetchone()
+    last_notes = last['notes'] if last else ''
+    notes_list = parse_notes(visit['notes'])
     con.close()
-    return redirect(url_for('patient_detail', pid=pid, visit=vid))
+    return render_template('visit_form.html', today=visit['date'], last_notes=last_notes,
+                           patient=patient, visit=visit, notes=notes_list)
 
 
 @app.route('/patient/<int:pid>/goals', methods=['GET', 'POST'])

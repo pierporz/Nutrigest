@@ -1,13 +1,19 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Nuova visita</h1>
+<h1>{% if visit %}Modifica visita{% else %}Nuova visita{% endif %} - {{ patient['name'] }}</h1>
 <form method="post">
-<div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{today}}"></div>
+<div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{ visit['date'] if visit else today }}"></div>
 <div class="row">
   <div class="col-md-6">
     <h3>Nuove note</h3>
     <div id="notes">
-      <div class="mb-2"><input name="title1" class="form-control mb-1" placeholder="Titolo"><textarea name="desc1" class="form-control" placeholder="Descrizione"></textarea></div>
+      {% if notes %}
+        {% for n in notes %}
+        <div class="mb-2"><input name="title{{ loop.index }}" class="form-control mb-1" placeholder="Titolo" value="{{ n.title }}"><textarea name="desc{{ loop.index }}" class="form-control" placeholder="Descrizione">{{ n.desc }}</textarea></div>
+        {% endfor %}
+      {% else %}
+        <div class="mb-2"><input name="title1" class="form-control mb-1" placeholder="Titolo"><textarea name="desc1" class="form-control" placeholder="Descrizione"></textarea></div>
+      {% endif %}
     </div>
     <button class="btn btn-sm btn-secondary mt-2" type="button" onclick="addNote()">Aggiungi nota</button>
   </div>
@@ -18,15 +24,21 @@
 </div>
 <h3>Misure</h3>
 <div class="row g-2">
-<div class="col"><input name="weight" class="form-control" placeholder="Peso"></div>
-<div class="col"><input name="waist" class="form-control" placeholder="Girovita"></div>
-<div class="col"><input name="hip" class="form-control" placeholder="Fianchi"></div>
+<div class="col"><input name="weight" class="form-control" placeholder="Peso" value="{{ visit['weight'] if visit else '' }}"></div>
+<div class="col"><input name="waist" class="form-control" placeholder="Girovita" value="{{ visit['waist'] if visit else '' }}"></div>
+<div class="col"><input name="hip" class="form-control" placeholder="Fianchi" value="{{ visit['hip'] if visit else '' }}"></div>
+</div>
+<div class="row g-2 mt-2">
+<div class="col"><input name="height" class="form-control" placeholder="Altezza" value="{{ visit['height'] if visit else '' }}"></div>
+<div class="col"><input name="navel" class="form-control" placeholder="Circ. Ombelico" value="{{ visit['navel'] if visit else '' }}"></div>
+</div>
+<div class="mb-2 mt-2"><input name="custom" class="form-control" placeholder="Altre misure" value="{{ visit['custom'] if visit else '' }}"></div>
 </div>
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/">Annulla</a>
 </form>
 <script>
-let noteIdx = 2;
+let noteIdx = {{ notes|length + 1 if notes else 2 }};
 function addNote() {
   const container = document.getElementById('notes');
   const div = document.createElement('div');
