@@ -53,7 +53,6 @@
 <td></td>
 </tr>
 <tr><td colspan="7"><button type="button" class="btn btn-sm btn-secondary" onclick="addRow(this)">Aggiungi riga</button></td></tr>
-<tr class="meal-summary"><td colspan="7" class="text-end small"></td></tr>
 </table>
 {% endfor %}
 </div>
@@ -61,7 +60,8 @@
 </div>
 </div>
 <div class="col-md-3">
-  <div id="goal-summary" class="border p-2"></div>
+  <div id="goal-summary" class="border p-2 mb-2"></div>
+  <div id="meal-breakdown" class="border p-2"></div>
 </div>
 </div>
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
@@ -117,10 +117,11 @@ function setupFilter(row) {
 function computeTotals() {
   document.querySelectorAll('.tab-pane').forEach(pane => {
     let dayTot = {kcal:0,carbs:0,protein:0,fat:0};
+    let mealData = {};
     pane.querySelectorAll('table').forEach(table => {
       let mealTot = {kcal:0,carbs:0,protein:0,fat:0};
       table.querySelectorAll('tr').forEach(row => {
-        if (row.querySelector('th') || row.classList.contains('meal-summary')) return;
+        if (row.querySelector('th')) return;
         let kcal=0,carbs=0,protein=0,fat=0;
         if (row.classList.contains('add-row')) {
           kcal = parseFloat(row.querySelector('.kcal').textContent)||0;
@@ -142,37 +143,37 @@ function computeTotals() {
       dayTot.carbs += mealTot.carbs;
       dayTot.protein += mealTot.protein;
       dayTot.fat += mealTot.fat;
-      const mrow = table.querySelector('.meal-summary td');
-      if (mrow) {
-        const bars = ['kcal','carbs','protein','fat'].map(k => {
-          const goal = goals[k==='kcal' ? 'calories' : k==='carbs' ? 'cho_g' : k==='protein' ? 'pro_g' : 'fat_g'];
-          const val = mealTot[k];
-          const pct = goal ? Math.min(100, val/goal*100) : 0;
-          const label = k === 'kcal' ? 'Kcal' : k.toUpperCase();
-          return `<div class="mb-1"><small>${label}: ${val.toFixed(1)} / ${goal}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
-        }).join('');
-        mrow.innerHTML = `Totale: ${mealTot.kcal.toFixed(1)} kcal CHO ${mealTot.carbs.toFixed(1)}g PRO ${mealTot.protein.toFixed(1)}g FAT ${mealTot.fat.toFixed(1)}g` + bars;
-      }
+      mealData[table.dataset.meal] = mealTot;
     });
     const dsum = pane.querySelector('.day-summary');
     if (dsum) {
-      dsum.textContent = `Totale giorno: ${dayTot.kcal.toFixed(1)} kcal CHO ${dayTot.carbs.toFixed(1)}g PRO ${dayTot.protein.toFixed(1)}g FAT ${dayTot.fat.toFixed(1)}g`;
+      dsum.textContent = `Totale giorno: ${Math.round(dayTot.kcal)} kcal CHO ${Math.round(dayTot.carbs)}g PRO ${Math.round(dayTot.protein)}g FAT ${Math.round(dayTot.fat)}g`;
     }
+    pane.dataset.dayTotals = JSON.stringify(dayTot);
+    pane.dataset.mealTotals = JSON.stringify(mealData);
   });
   const active = document.querySelector('.tab-pane.active');
   if (active) {
-    const dayText = active.querySelector('.day-summary').textContent;
-    const dayTotals = dayText.match(/([\d\.]+)/g)||[];
-    const bars = ['calories','cho_g','pro_g','fat_g'].map((g,i)=>{
-      const val = parseFloat(dayTotals[i])||0;
+    const dayTot = JSON.parse(active.dataset.dayTotals || '{}');
+    const mealTotals = JSON.parse(active.dataset.mealTotals || '{}');
+    const bars = ['calories','cho_g','pro_g','fat_g'].map(g=>{
+      const key = g==='calories' ? 'kcal' : g==='cho_g' ? 'carbs' : g==='pro_g' ? 'protein' : 'fat';
+      const val = dayTot[key] || 0;
       const goal = goals[g];
       const lbl = g==='calories'?'Kcal':g==='cho_g'?'CHO':g==='pro_g'?'PRO':'FAT';
       const pct = goal?Math.min(100,val/goal*100):0;
-      return `<div class="mb-1"><small>${lbl}: ${val.toFixed(1)} / ${goal}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
+      return `<div class="mb-1"><small>${lbl}: ${Math.round(val)} / ${Math.round(goal)}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+    const mealHtml = Object.keys(mealTotals).map(m=>{
+      const t = mealTotals[m];
+      const pct = k=> dayTot[k] ? Math.round(t[k]/dayTot[k]*100) : 0;
+      return `<div><b>${m}</b>: Kcal ${pct('kcal')}% CHO ${pct('carbs')}% PRO ${pct('protein')}% FAT ${pct('fat')}%</div>`;
     }).join('');
     document.getElementById('goal-summary').innerHTML =
-      `<div><b>Obiettivi:</b> ${goals.calories} kcal CHO ${goals.cho_g.toFixed(1)}g PRO ${goals.pro_g.toFixed(1)}g FAT ${goals.fat_g.toFixed(1)}g</div>`+
-      `<div>${dayText}</div>`+bars;
+      `<div><b>Obiettivi:</b> ${Math.round(goals.calories)} kcal CHO ${Math.round(goals.cho_g)}g PRO ${Math.round(goals.pro_g)}g FAT ${Math.round(goals.fat_g)}g</div>`+
+      `<div>Totale giorno: ${Math.round(dayTot.kcal)} kcal CHO ${Math.round(dayTot.carbs)}g PRO ${Math.round(dayTot.protein)}g FAT ${Math.round(dayTot.fat)}g</div>`+
+      bars;
+    document.getElementById('meal-breakdown').innerHTML = mealHtml;
   }
 }
 document.querySelectorAll('tr.add-row').forEach(setupFilter);
