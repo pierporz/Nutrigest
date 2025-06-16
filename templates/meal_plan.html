@@ -67,7 +67,7 @@
 <a class="btn btn-secondary mt-2" href="/patient/{{ patient['id'] }}">Torna</a>
 </form>
 <script>
-const goals = {{ goals|tojson }};
+const goalData = {{ goals|tojson }};
 function addRow(btn) {
   const row = btn.closest('tr');
   const clone = row.cloneNode(true);
@@ -155,7 +155,7 @@ function computeTotals() {
     const bars = ['calories','cho_g','pro_g','fat_g'].map(g=>{
       const key = g==='calories' ? 'kcal' : g==='cho_g' ? 'carbs' : g==='pro_g' ? 'protein' : 'fat';
       const val = dayTot[key] || 0;
-      const goal = goals[g];
+      const goal = goalData[g];
       const lbl = g==='calories'?'Kcal':g==='cho_g'?'CHO':g==='pro_g'?'PRO':'FAT';
       const pct = goal?Math.min(100,val/goal*100):0;
       return `<div class="mb-1"><small>${lbl}: ${Math.round(val)} / ${Math.round(goal)}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
@@ -171,8 +171,7 @@ function computeTotals() {
     }).join('');
     const mealHtml = `<table class="table table-sm"><tr><th>Pasto</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th></tr>${mealRows}</table>`;
     document.getElementById('goal-summary').innerHTML =
-      `<div><b>Obiettivi:</b> ${Math.round(goals.calories)} kcal CHO ${Math.round(goals.cho_g)}g PRO ${Math.round(goals.pro_g)}g FAT ${Math.round(goals.fat_g)}g</div>`+
-      `<div>Totale giorno: ${Math.round(dayTot.kcal)} kcal CHO ${Math.round(dayTot.carbs)}g PRO ${Math.round(dayTot.protein)}g FAT ${Math.round(dayTot.fat)}g</div>`+
+      `<div><b>Obiettivi</b></div>` +
       bars;
     document.getElementById('meal-breakdown').innerHTML = mealHtml;
   }
