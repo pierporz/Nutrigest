@@ -27,11 +27,11 @@
 {% for row in plan[(day,meal)] %}
 <tr class="existing-row" data-kcal="{{ row['kcal'] }}" data-carbs="{{ row['carbs'] }}" data-protein="{{ row['protein'] }}" data-fat="{{ row['fat'] }}">
 <td>{{ row['name'] }}</td>
-<td>{{ row['grams'] }}</td>
-<td>{{ row['kcal'] }}</td>
-<td>{{ row['carbs'] }}</td>
-<td>{{ row['protein'] }}</td>
-<td>{{ row['fat'] }}</td>
+<td>{{ row['grams']|round|int }}</td>
+<td>{{ row['kcal']|round|int }}</td>
+<td>{{ row['carbs']|round|int }}</td>
+<td>{{ row['protein']|round|int }}</td>
+<td>{{ row['fat']|round|int }}</td>
 <td>
   <a class="btn btn-sm btn-secondary" href="/patient/{{patient['id']}}/meal_plan/edit/{{row['id']}}">Modifica</a>
   <form method="post" action="/patient/{{patient['id']}}/meal_plan/delete/{{row['id']}}" style="display:inline">
@@ -89,10 +89,10 @@ function updateMacros(row) {
   } else {
     row.querySelector('.food-id').value = '';
   }
-  row.querySelector('.kcal').textContent = kcal ? kcal.toFixed(1) : '';
-  row.querySelector('.carbs').textContent = carbs ? carbs.toFixed(1) : '';
-  row.querySelector('.protein').textContent = pro ? pro.toFixed(1) : '';
-  row.querySelector('.fat').textContent = fat ? fat.toFixed(1) : '';
+  row.querySelector('.kcal').textContent = kcal ? Math.round(kcal) : '';
+  row.querySelector('.carbs').textContent = carbs ? Math.round(carbs) : '';
+  row.querySelector('.protein').textContent = pro ? Math.round(pro) : '';
+  row.querySelector('.fat').textContent = fat ? Math.round(fat) : '';
   computeTotals();
 }
 document.addEventListener('input', e => {
@@ -160,16 +160,16 @@ function computeTotals() {
       const pct = goal?Math.min(100,val/goal*100):0;
       return `<div class="mb-1"><small>${lbl}: ${Math.round(val)} / ${Math.round(goal)}</small><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div></div>`;
     }).join('');
-    const mealHtml = Object.keys(mealTotals).map(m=>{
+    const mealRows = Object.keys(mealTotals).map(m => {
       const t = mealTotals[m];
-      const pct = k=> dayTot[k] ? Math.round(t[k]/dayTot[k]*100) : 0;
-      const bars = ['kcal','carbs','protein','fat'].map(k=>{
-        const lbl = k==='kcal'?'Kcal':k==='carbs'?'CHO':k==='protein'?'PRO':'FAT';
-        const p = pct(k);
-        return `<div class="mb-1"><small>${lbl}: ${p}%</small><div class="progress"><div class="progress-bar bg-info" style="width:${p}%"></div></div></div>`;
-      }).join('');
-      return `<div class="mb-2"><b>${m}</b>${bars}</div>`;
+      const pct = k => dayTot[k] ? Math.round(t[k] / dayTot[k] * 100) : 0;
+      return `<tr><td>${m}</td>`+
+             `<td><b>${Math.round(t.kcal)}</b> (${pct('kcal')}%)</td>`+
+             `<td><b>${Math.round(t.carbs)}</b> (${pct('carbs')}%)</td>`+
+             `<td><b>${Math.round(t.protein)}</b> (${pct('protein')}%)</td>`+
+             `<td><b>${Math.round(t.fat)}</b> (${pct('fat')}%)</td></tr>`;
     }).join('');
+    const mealHtml = `<table class="table table-sm"><tr><th>Pasto</th><th>Kcal</th><th>CHO</th><th>PRO</th><th>FAT</th></tr>${mealRows}</table>`;
     document.getElementById('goal-summary').innerHTML =
       `<div><b>Obiettivi:</b> ${Math.round(goals.calories)} kcal CHO ${Math.round(goals.cho_g)}g PRO ${Math.round(goals.pro_g)}g FAT ${Math.round(goals.fat_g)}g</div>`+
       `<div>Totale giorno: ${Math.round(dayTot.kcal)} kcal CHO ${Math.round(dayTot.carbs)}g PRO ${Math.round(dayTot.protein)}g FAT ${Math.round(dayTot.fat)}g</div>`+
