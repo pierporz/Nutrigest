@@ -2,6 +2,10 @@
 {% block content %}
 <h1>Piano Nutrizionale {{ patient['name'] }}</h1>
 <form method="post">
+<div class="mb-2 text-end">
+  <button class="btn btn-primary" type="submit">Salva</button>
+  <a class="btn btn-secondary" href="/patient/{{ patient['id'] }}">Torna</a>
+</div>
 <datalist id="foodsList">
   {% for food in foods %}
   <option value="{{food['name']}}" data-id="{{food['id']}}" data-kcal="{{food['kcal']}}" data-carbs="{{food['carbs']}}" data-protein="{{food['protein']}}" data-fat="{{food['fat']}}"></option>
