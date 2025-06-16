@@ -113,29 +113,36 @@ def del_question(qid):
 
 @app.route('/foods')
 def foods():
+    back = request.args.get('back', '/')
     con = get_db()
     fs = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
     con.close()
-    return render_template('foods.html', foods=fs)
+    return render_template('foods.html', foods=fs, back=back)
 
 
 @app.route('/foods/add', methods=['POST'])
 def add_food():
+    back = request.form.get('back')
     con = get_db()
     con.execute('INSERT INTO foods (name, kcal, carbs, protein, fat) VALUES (?,?,?,?,?)',
                 (request.form['name'], request.form.get('kcal'), request.form.get('carbs'),
                  request.form.get('protein'), request.form.get('fat')))
     con.commit()
     con.close()
+    if back:
+        return redirect(url_for('foods', back=back))
     return redirect(url_for('foods'))
 
 
 @app.route('/foods/delete/<int:fid>', methods=['POST'])
 def del_food(fid):
+    back = request.form.get('back')
     con = get_db()
     con.execute('DELETE FROM foods WHERE id=?', (fid,))
     con.commit()
     con.close()
+    if back:
+        return redirect(url_for('foods', back=back))
     return redirect(url_for('foods'))
 
 
@@ -314,8 +321,10 @@ def meal_plan(pid):
             d[key] += r[key]
             m[key] += r[key]
     con.close()
+    foods_url = url_for('foods', back=url_for('meal_plan', pid=pid))
     return render_template('meal_plan.html', patient=patient, days=DAYS, meals=MEALS,
-                           foods=foods, plan=plan, goals=goals_grams, summary=summary)
+                           foods=foods, plan=plan, goals=goals_grams, summary=summary,
+                           foods_url=foods_url)
 
 
 @app.route('/patient/<int:pid>/meal_plan/delete/<int:mid>', methods=['POST'])
