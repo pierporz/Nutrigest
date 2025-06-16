@@ -94,7 +94,7 @@ def del_question(qid):
 @app.route('/foods')
 def foods():
     con = get_db()
-    fs = con.execute('SELECT * FROM foods').fetchall()
+    fs = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
     con.close()
     return render_template('foods.html', foods=fs)
 
@@ -220,7 +220,7 @@ MEALS = ['Colazione', 'Spuntino', 'Pranzo', 'Merenda', 'Cena']
 def meal_plan(pid):
     con = get_db()
     patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
-    foods = con.execute('SELECT * FROM foods').fetchall()
+    foods = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
     goals_row = con.execute('SELECT * FROM obiettivi WHERE patient_id=?', (pid,)).fetchone()
     goals_grams = None
     if goals_row:
@@ -286,7 +286,7 @@ def edit_meal_item(pid, mid):
         con.commit()
         con.close()
         return redirect(url_for('meal_plan', pid=pid))
-    foods = con.execute('SELECT * FROM foods').fetchall()
+    foods = con.execute('SELECT * FROM foods ORDER BY name').fetchall()
     row = con.execute('SELECT * FROM meal_plans WHERE id=?', (mid,)).fetchone()
     con.close()
     return render_template('meal_item_form.html', patient_id=pid, row=row, foods=foods)
