@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Obiettivi Paziente</h1>
+<h1 class="mb-3">Obiettivi Paziente</h1>
+<div class="card p-3">
 <form method="post">
   <div class="mb-2">
     <label class="form-label">Calorie</label>
@@ -24,6 +25,7 @@
   <button class="btn btn-primary">Salva</button>
   <a class="btn btn-secondary" href="/patient/{{ patient_id }}">Annulla</a>
 </form>
+</div>
 <script>
 function updateGrams() {
   const kcal = parseFloat(document.querySelector('[name=calories]').value) || 0;

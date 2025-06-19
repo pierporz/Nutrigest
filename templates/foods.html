@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Alimenti</h1>
+<h1 class="mb-3">Alimenti</h1>
 <div class="mb-2 text-end">
   <a class="btn btn-secondary" href="{{ back }}">Torna</a>
 </div>
+<div class="card p-3 mb-3">
 <form method="post" class="mb-3" action="/foods/add">
   <input type="hidden" name="back" value="{{ back }}">
   <div class="row g-2">
@@ -36,6 +37,7 @@
 </table>
 <div class="text-end">
   <a class="btn btn-secondary" href="{{ back }}">Torna</a>
+</div>
 </div>
 <script>
 function applyFilter() {
