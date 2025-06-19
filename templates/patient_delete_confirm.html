@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-3 text-danger">Elimina Paziente</h1>
+<div class="card p-3">
+<p>Per eliminare definitivamente <strong>{{ patient['name'] }}</strong> digita il suo nome e cognome e conferma.</p>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<form method="post">
+  <input name="confirm_name" class="form-control mb-3" placeholder="Nome Cognome" required>
+  <button class="btn btn-danger" type="submit">Elimina</button>
+  <a class="btn btn-secondary" href="/patient/{{ patient['id'] }}">Annulla</a>
+</form>
+</div>
+{% endblock %}
