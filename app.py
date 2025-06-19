@@ -5,13 +5,38 @@ import configparser
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
 from werkzeug.utils import secure_filename
+from tkinter import Tk, filedialog, messagebox
 
 app = Flask(__name__)
 
-# Load configuration
-config = configparser.ConfigParser()
-config.read('config.ini')
-DATA_DIR = config.get('Paths', 'data_dir', fallback='.')
+# Load configuration with GUI helper
+def ensure_config():
+    cfg = configparser.ConfigParser()
+    if os.path.exists('config.ini'):
+        cfg.read('config.ini')
+    data_dir = cfg.get('Paths', 'data_dir', fallback=None)
+    if not data_dir:
+        root = Tk()
+        root.withdraw()
+        messagebox.showinfo(
+            "Configurazione",
+            "Seleziona la cartella in cui salvare il database e gli allegati",
+        )
+        folder = filedialog.askdirectory(title="Cartella dati")
+        root.destroy()
+        if not folder:
+            raise SystemExit("Nessuna cartella selezionata. Uscita.")
+        os.makedirs(folder, exist_ok=True)
+        if not cfg.has_section('Paths'):
+            cfg.add_section('Paths')
+        cfg.set('Paths', 'data_dir', folder)
+        with open('config.ini', 'w') as f:
+            cfg.write(f)
+        data_dir = folder
+    return cfg, data_dir
+
+
+config, DATA_DIR = ensure_config()
 
 # Paths for database and attachments
 DB = os.path.join(DATA_DIR, 'nutrigest.db')
