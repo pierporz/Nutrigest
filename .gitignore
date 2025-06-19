@@ -2,6 +2,6 @@
 config.ini
 
 # Ignore runtime data
-nutrigest.db
+nutriflap.db
 attachments/
 __pycache__/
