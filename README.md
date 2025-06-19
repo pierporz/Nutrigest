@@ -1,4 +1,4 @@
-# Nutrigest
+# Nutriflap
 
 This application stores its database and uploaded attachments in a directory
 specified by `config.ini`.

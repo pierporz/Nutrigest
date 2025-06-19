@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import time
+import shutil
 import configparser
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
@@ -39,7 +40,7 @@ def ensure_config():
 config, DATA_DIR = ensure_config()
 
 # Paths for database and attachments
-DB = os.path.join(DATA_DIR, 'nutrigest.db')
+DB = os.path.join(DATA_DIR, 'nutriflap.db')
 ATTACH_FOLDER = os.path.join(DATA_DIR, 'attachments')
 
 # Ensure directories exist
@@ -76,6 +77,38 @@ def parse_notes(notes):
             desc = part[end + 4:].strip()
         items.append({'title': title, 'desc': desc})
     return items
+
+
+@app.route('/change_data_dir')
+def change_data_dir():
+    global DATA_DIR, DB, ATTACH_FOLDER, config
+    old_dir = DATA_DIR
+    root = Tk()
+    root.withdraw()
+    new_dir = filedialog.askdirectory(title="Cartella dati", initialdir=old_dir)
+    root.destroy()
+    if not new_dir or new_dir == old_dir:
+        return redirect(url_for('index'))
+    try:
+        os.makedirs(new_dir, exist_ok=True)
+        shutil.copy2(DB, os.path.join(new_dir, 'nutriflap.db'))
+        shutil.copytree(ATTACH_FOLDER, os.path.join(new_dir, 'attachments'), dirs_exist_ok=True)
+        if not config.has_section('Paths'):
+            config.add_section('Paths')
+        config.set('Paths', 'data_dir', new_dir)
+        with open('config.ini', 'w') as f:
+            config.write(f)
+        DATA_DIR = new_dir
+        DB = os.path.join(DATA_DIR, 'nutriflap.db')
+        ATTACH_FOLDER = os.path.join(DATA_DIR, 'attachments')
+        os.makedirs(ATTACH_FOLDER, exist_ok=True)
+        root = Tk(); root.withdraw(); messagebox.showinfo("Completato", "Cartella aggiornata"); root.destroy()
+    except Exception as e:
+        config.set('Paths', 'data_dir', old_dir)
+        with open('config.ini', 'w') as f:
+            config.write(f)
+        root = Tk(); root.withdraw(); messagebox.showerror("Errore", str(e)); root.destroy()
+    return redirect(url_for('index'))
 
 
 
