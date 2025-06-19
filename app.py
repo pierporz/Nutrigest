@@ -1,9 +1,14 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for
+import os
+import time
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 DB = 'nutrigest.db'
+ATTACH_FOLDER = 'attachments'
+os.makedirs(ATTACH_FOLDER, exist_ok=True)
 
 
 def get_db():
@@ -350,6 +355,60 @@ def edit_meal_item(pid, mid):
     row = con.execute('SELECT * FROM meal_plans WHERE id=?', (mid,)).fetchone()
     con.close()
     return render_template('meal_item_form.html', patient_id=pid, row=row, foods=foods)
+
+
+@app.route('/patient/<int:pid>/attachments', methods=['GET', 'POST'])
+def patient_attachments(pid):
+    con = get_db()
+    patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if file and file.filename:
+            pdir = os.path.join(ATTACH_FOLDER, str(pid))
+            os.makedirs(pdir, exist_ok=True)
+            fname = secure_filename(file.filename)
+            unique = f"{int(time.time())}_{fname}"
+            path = os.path.join(pdir, unique)
+            file.save(path)
+            rel = os.path.relpath(path, ATTACH_FOLDER)
+            con.execute('INSERT INTO attachments (patient_id, filename, filepath) VALUES (?,?,?)',
+                        (pid, fname, rel))
+            con.commit()
+        con.close()
+        return redirect(url_for('patient_attachments', pid=pid))
+    attachments = con.execute('SELECT * FROM attachments WHERE patient_id=?', (pid,)).fetchall()
+    con.close()
+    return render_template('attachments.html', patient=patient, attachments=attachments)
+
+
+@app.route('/attachments/download/<int:aid>')
+def download_attachment(aid):
+    con = get_db()
+    row = con.execute('SELECT filepath, filename FROM attachments WHERE id=?', (aid,)).fetchone()
+    con.close()
+    if row:
+        return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, download_name=row['filename'])
+    return 'Not found', 404
+
+
+@app.route('/attachments/delete/<int:aid>', methods=['POST'])
+def delete_attachment(aid):
+    con = get_db()
+    row = con.execute('SELECT filepath, patient_id FROM attachments WHERE id=?', (aid,)).fetchone()
+    pid = None
+    if row:
+        pid = row['patient_id']
+        fpath = os.path.join(ATTACH_FOLDER, row['filepath'])
+        try:
+            os.remove(fpath)
+        except FileNotFoundError:
+            pass
+        con.execute('DELETE FROM attachments WHERE id=?', (aid,))
+        con.commit()
+    con.close()
+    if pid:
+        return redirect(url_for('patient_attachments', pid=pid))
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
