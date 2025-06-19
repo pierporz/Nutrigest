@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="mb-3">Modifica Paziente</h1>
+<div class="card p-3">
+<form method="post">
+<div class="mb-2">
+<label class="form-label">Nome e Cognome</label>
+<input name="name" class="form-control" value="{{ patient['name'] }}" required>
+</div>
+<div class="mb-2">
+<label class="form-label">Codice Fiscale</label>
+<input name="fiscal_code" class="form-control" value="{{ patient['fiscal_code'] }}">
+</div>
+<div class="mb-2">
+<label class="form-label">Data di nascita</label>
+<input type="date" name="birthdate" class="form-control" value="{{ patient['birthdate'] }}">
+</div>
+<div class="mb-2">
+<label class="form-label">Email</label>
+<input name="email" class="form-control" value="{{ patient['email'] }}">
+</div>
+<div class="mb-2">
+<label class="form-label">Telefono</label>
+<input name="phone" class="form-control" value="{{ patient['phone'] }}">
+</div>
+<button class="btn btn-primary" type="submit">Salva</button>
+<a class="btn btn-secondary" href="/patient/{{ patient['id'] }}">Annulla</a>
+</form>
+</div>
+{% endblock %}

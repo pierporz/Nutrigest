@@ -467,6 +467,56 @@ def delete_attachment(aid):
     return redirect(url_for('index'))
 
 
+@app.route('/patient/<int:pid>/edit', methods=['GET', 'POST'])
+def edit_patient(pid):
+    con = get_db()
+    patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
+    if not patient:
+        con.close()
+        return redirect(url_for('index'))
+    if request.method == 'POST':
+        con.execute('''UPDATE patients SET name=?, birthdate=?, email=?, phone=?, fiscal_code=? WHERE id=?''',
+                    (request.form['name'], request.form.get('birthdate'), request.form.get('email'),
+                     request.form.get('phone'), request.form.get('fiscal_code'), pid))
+        con.commit()
+        con.close()
+        return redirect(url_for('patient_detail', pid=pid))
+    con.close()
+    return render_template('edit_patient.html', patient=patient)
+
+
+@app.route('/patient/<int:pid>/delete', methods=['GET', 'POST'])
+def delete_patient(pid):
+    con = get_db()
+    patient = con.execute('SELECT * FROM patients WHERE id=?', (pid,)).fetchone()
+    if not patient:
+        con.close()
+        return redirect(url_for('index'))
+    error = None
+    if request.method == 'POST':
+        name_entered = request.form.get('confirm_name', '').strip().lower()
+        if name_entered == patient['name'].strip().lower():
+            attach_rows = con.execute('SELECT filepath FROM attachments WHERE patient_id=?', (pid,)).fetchall()
+            for row in attach_rows:
+                fpath = os.path.join(ATTACH_FOLDER, row['filepath'].replace('/', os.sep))
+                try:
+                    os.remove(fpath)
+                except FileNotFoundError:
+                    pass
+            con.execute('DELETE FROM attachments WHERE patient_id=?', (pid,))
+            con.execute('DELETE FROM visits WHERE patient_id=?', (pid,))
+            con.execute('DELETE FROM meal_plans WHERE patient_id=?', (pid,))
+            con.execute('DELETE FROM obiettivi WHERE patient_id=?', (pid,))
+            con.execute('DELETE FROM patients WHERE id=?', (pid,))
+            con.commit()
+            con.close()
+            return redirect(url_for('index'))
+        else:
+            error = 'Nome non corrispondente'
+    con.close()
+    return render_template('patient_delete_confirm.html', patient=patient, error=error)
+
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
