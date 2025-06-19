@@ -1,0 +1,7 @@
+# Ignore user-specific configuration
+config.ini
+
+# Ignore runtime data
+nutrigest.db
+attachments/
+__pycache__/

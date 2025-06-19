@@ -1,0 +1,6 @@
+[Paths]
+# Directory where the database and attachments will be stored
+# Example: data
+# data_dir = /path/to/storage
+
+data_dir = data
