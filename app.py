@@ -2,6 +2,7 @@ import sqlite3
 import os
 import time
 import shutil
+import sys
 import configparser
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
@@ -52,14 +53,20 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-
 def init_db():
-    with open('init_db.sql') as f:
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS  # cartella temporanea estratta dal .exe
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    sql_path = os.path.join(base_path, 'init_db.sql')
+    with open(sql_path, 'r', encoding='utf-8') as f:
         sql = f.read()
     conn = get_db()
     conn.executescript(sql)
     conn.commit()
     conn.close()
+
 
 
 def parse_notes(notes):
@@ -552,4 +559,4 @@ def delete_patient(pid):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=False)
