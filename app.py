@@ -385,6 +385,8 @@ def patient_attachments(pid):
             path = os.path.join(pdir, unique)
             file.save(path)
             rel = os.path.relpath(path, ATTACH_FOLDER)
+            # Use forward slashes so send_from_directory works on all OSes
+            rel = rel.replace(os.sep, '/')
             con.execute('INSERT INTO attachments (patient_id, filename, filepath) VALUES (?,?,?)',
                         (pid, fname, rel))
             con.commit()
@@ -401,11 +403,12 @@ def download_attachment(aid):
     row = con.execute('SELECT filepath, filename FROM attachments WHERE id=?', (aid,)).fetchone()
     con.close()
     if row:
+        filepath = row['filepath'].replace('\\', '/')
         try:
-            return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, download_name=row['filename'])
+            return send_from_directory(ATTACH_FOLDER, filepath, as_attachment=True, download_name=row['filename'])
         except TypeError:
             # Compatibility with older Flask versions
-            return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, attachment_filename=row['filename'])
+            return send_from_directory(ATTACH_FOLDER, filepath, as_attachment=True, attachment_filename=row['filename'])
     return 'Not found', 404
 
 
@@ -416,7 +419,7 @@ def delete_attachment(aid):
     pid = None
     if row:
         pid = row['patient_id']
-        fpath = os.path.join(ATTACH_FOLDER, row['filepath'])
+        fpath = os.path.join(ATTACH_FOLDER, row['filepath'].replace('/', os.sep))
         try:
             os.remove(fpath)
         except FileNotFoundError:
