@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Allegati {{ patient['name'] }}</h1>
+<form method="post" enctype="multipart/form-data" class="mb-3">
+  <div class="input-group">
+    <input type="file" name="file" class="form-control" required>
+    <button class="btn btn-primary" type="submit">Carica</button>
+  </div>
+</form>
+<table class="table table-sm">
+  <tr><th>Nome</th><th>Caricato il</th><th></th></tr>
+  {% for a in attachments %}
+  <tr>
+    <td><a href="{{ url_for('download_attachment', aid=a['id']) }}">{{ a['filename'] }}</a></td>
+    <td>{{ a['upload_date'] }}</td>
+    <td>
+      <form method="post" action="{{ url_for('delete_attachment', aid=a['id']) }}" style="display:inline">
+        <button class="btn btn-sm btn-danger">Elimina</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<a class="btn btn-secondary" href="/patient/{{ patient['id'] }}">Torna</a>
+{% endblock %}
