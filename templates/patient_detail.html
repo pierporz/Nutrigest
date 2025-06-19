@@ -9,6 +9,7 @@
 <li>Telefono: {{ patient['phone'] }}</li>
 <li>Cod. Fiscale: {{ patient['fiscal_code'] }}</li>
 </ul>
+<a class="btn btn-sm btn-secondary mb-2" href="/patient/{{patient['id']}}/attachments">Allegati</a>
 <h4>Misure</h4>
 <table class="table table-sm">
 <tr><th>Data</th><th>Peso</th><th>Girovita</th><th>Fianchi</th><th>Altezza</th><th>Ombelico</th><th>Altre</th></tr>
@@ -39,13 +40,17 @@
 {% endif %}
 <a class="btn btn-sm btn-primary" href="/patient/{{patient['id']}}/meal_plan">Apri piano</a>
 <a class="btn btn-sm btn-secondary" href="/patient/{{patient['id']}}/goals">Obiettivi</a>
-<a class="btn btn-sm btn-secondary" href="/patient/{{patient['id']}}/attachments">Allegati</a>
 <h4>Visite</h4>
 <table class="table table-sm">
-<tr><th>Data</th></tr>
+<tr><th>Data</th><th></th></tr>
 {% for v in visits %}
 <tr>
 <td><a href="/patient/{{patient['id']}}?visit={{v['id']}}">{{v['date']}}</a></td>
+<td>
+  <form method="post" action="{{ url_for('delete_visit', vid=v['id']) }}" style="display:inline">
+    <button class="btn btn-sm btn-danger">Elimina</button>
+  </form>
+</td>
 </tr>
 {% endfor %}
 </table>
