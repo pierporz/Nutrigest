@@ -48,7 +48,7 @@ def parse_notes(notes):
 @app.route('/')
 def index():
     con = get_db()
-    patients = con.execute('SELECT * FROM patients').fetchall()
+    patients = con.execute('SELECT * FROM patients ORDER BY name COLLATE NOCASE').fetchall()
     con.close()
     return render_template('index.html', patients=patients)
 
@@ -252,6 +252,20 @@ def edit_visit(pid, vid):
                            patient=patient, visit=visit, notes=notes_list)
 
 
+@app.route('/visit/<int:vid>/delete', methods=['POST'])
+def delete_visit(vid):
+    con = get_db()
+    row = con.execute('SELECT patient_id FROM visits WHERE id=?', (vid,)).fetchone()
+    pid = row['patient_id'] if row else None
+    if row:
+        con.execute('DELETE FROM visits WHERE id=?', (vid,))
+        con.commit()
+    con.close()
+    if pid:
+        return redirect(url_for('patient_detail', pid=pid))
+    return redirect(url_for('index'))
+
+
 @app.route('/patient/<int:pid>/goals', methods=['GET', 'POST'])
 def edit_goals(pid):
     con = get_db()
@@ -387,7 +401,11 @@ def download_attachment(aid):
     row = con.execute('SELECT filepath, filename FROM attachments WHERE id=?', (aid,)).fetchone()
     con.close()
     if row:
-        return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, download_name=row['filename'])
+        try:
+            return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, download_name=row['filename'])
+        except TypeError:
+            # Compatibility with older Flask versions
+            return send_from_directory(ATTACH_FOLDER, row['filepath'], as_attachment=True, attachment_filename=row['filename'])
     return 'Not found', 404
 
 
