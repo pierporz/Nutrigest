@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{% if visit %}Modifica visita{% else %}Nuova visita{% endif %} - {{ patient['name'] }}</h1>
+<h1 class="mb-3">{% if visit %}Modifica visita{% else %}Nuova visita{% endif %} - {{ patient['name'] }}</h1>
+<div class="card p-3">
 <form method="post">
 <div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{ visit['date'] if visit else today }}"></div>
 <div class="row">
@@ -37,6 +38,7 @@
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/">Annulla</a>
 </form>
+</div>
 <script>
 let noteIdx = {{ notes|length + 1 if notes else 2 }};
 function addNote() {

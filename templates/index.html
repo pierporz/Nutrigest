@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Lista Pazienti</h1>
-<a class="btn btn-primary" href="/new_patient">Nuovo Paziente</a>
-<a class="btn btn-secondary" href="/foods">Alimenti</a>
-<a class="btn btn-secondary" href="/questions">Domande</a>
+<h1 class="mb-3">Lista Pazienti</h1>
+<div class="d-flex gap-2 mb-3">
+  <a class="btn btn-primary" href="/new_patient">Nuovo Paziente</a>
+  <a class="btn btn-secondary" href="/foods">Alimenti</a>
+  <a class="btn btn-secondary" href="/questions">Domande</a>
+</div>
 <table class="table table-striped mt-3" id="patients-table">
     <thead>
     <tr>

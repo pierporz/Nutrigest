@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Domande</h1>
+<h1 class="mb-3">Domande</h1>
+<div class="card p-3 mb-3">
 <form method="post" class="mb-3" action="/questions/add">
 <div class="input-group">
 <input name="text" class="form-control" placeholder="Nuova domanda" required>
@@ -21,4 +22,5 @@
 {% endfor %}
 </table>
 <a class="btn btn-secondary" href="/">Torna</a>
+</div>
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Piano Nutrizionale {{ patient['name'] }}</h1>
+<h1 class="mb-3">Piano Nutrizionale {{ patient['name'] }}</h1>
+<div class="card p-3">
 <form method="post">
 <div class="mb-2 text-end">
   <button class="btn btn-primary" type="submit">Salva</button>
@@ -71,6 +72,7 @@
 <button class="btn btn-primary mt-2" type="submit">Salva</button>
 <a class="btn btn-secondary mt-2" href="/patient/{{ patient['id'] }}">Torna</a>
 </form>
+</div>
 <script>
 const goalData = {{ goals|tojson }};
 function addRow(btn) {
