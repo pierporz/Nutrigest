@@ -1,13 +1,23 @@
 import sqlite3
 import os
 import time
+import configparser
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-DB = 'nutrigest.db'
-ATTACH_FOLDER = 'attachments'
+
+# Load configuration
+config = configparser.ConfigParser()
+config.read('config.ini')
+DATA_DIR = config.get('Paths', 'data_dir', fallback='.')
+
+# Paths for database and attachments
+DB = os.path.join(DATA_DIR, 'nutrigest.db')
+ATTACH_FOLDER = os.path.join(DATA_DIR, 'attachments')
+
+# Ensure directories exist
 os.makedirs(ATTACH_FOLDER, exist_ok=True)
 
 
