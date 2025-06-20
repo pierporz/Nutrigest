@@ -11,7 +11,7 @@ Create a `config.ini` file based on the provided `config.ini.example` and set th
 To package the application with PyInstaller use:
 
 ```bash
-pyinstaller --noconfirm --onefile \
+pyinstaller --noconfirm --onefile --noconsole \
   --add-data "templates;templates" \
   --add-data "static;static" \
   --add-data "init_db.sql;." \
