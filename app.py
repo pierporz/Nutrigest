@@ -8,6 +8,8 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from datetime import date
 from werkzeug.utils import secure_filename
 from tkinter import Tk, filedialog, messagebox
+import threading
+import webbrowser
 
 app = Flask(__name__)
 
@@ -568,4 +570,9 @@ def delete_patient(pid):
 
 if __name__ == '__main__':
     init_db()
+
+    def open_browser():
+        webbrowser.open_new('http://127.0.0.1:5000/')
+
+    threading.Timer(1.0, open_browser).start()
     app.run(debug=False)
