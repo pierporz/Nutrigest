@@ -29,6 +29,15 @@ def ensure_config():
         if not folder:
             raise SystemExit("Nessuna cartella selezionata. Uscita.")
         os.makedirs(folder, exist_ok=True)
+        # Copy default database when first configuring the data directory
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        default_db = os.path.join(base_path, 'nutriflap.db')
+        dest_db = os.path.join(folder, 'nutriflap.db')
+        if os.path.exists(default_db) and not os.path.exists(dest_db):
+            shutil.copy2(default_db, dest_db)
         if not cfg.has_section('Paths'):
             cfg.add_section('Paths')
         cfg.set('Paths', 'data_dir', folder)
