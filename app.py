@@ -16,7 +16,10 @@ import webbrowser
 
 app = Flask(__name__)
 
-BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, 'frozen', False):
+    BASE_PATH = os.path.dirname(sys.executable)
+else:
+    BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 LICENSE_FILE = os.path.join(BASE_PATH, 'license')
 API_URL = 'https://script.google.com/macros/s/AKfycbySf389gYwY0Enq8mXOyqr9iZiIz5kMyup9acIpB8JNRU8MwVgvXtAM4wl9CAUxprNdxQ/exec'
 API_KEY = 'asdnsiadnoienoiniopwefiefnw'
