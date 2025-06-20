@@ -20,3 +20,7 @@ pyinstaller --noconfirm --onefile --noconsole \
 
 The resulting executable will include the default database and, when run,
 automatically open your browser to `http://127.0.0.1:5000/`.
+
+When packaged, the application writes the `license` file in the same folder
+as the executable. Make sure the user has write permissions in that
+directory when running the `.exe`.
