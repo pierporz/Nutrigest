@@ -21,7 +21,7 @@ if getattr(sys, 'frozen', False):
 else:
     BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 LICENSE_FILE = os.path.join(BASE_PATH, 'license')
-API_URL = 'https://script.google.com/macros/s/AKfycbySf389gYwY0Enq8mXOyqr9iZiIz5kMyup9acIpB8JNRU8MwVgvXtAM4wl9CAUxprNdxQ/exec'
+API_URL = 'https://script.google.com/macros/s/AKfycbx9sG0yKLNqISd5ct1rv2IwtQl4cjQFtpNO0GnMV4GLd7unD1fFxtLe7ld4R34tnRvOhg/exec'
 API_KEY = 'asdnsiadnoienoiniopwefiefnw'
 
 def get_machine_guid():
