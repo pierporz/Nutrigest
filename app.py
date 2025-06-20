@@ -7,11 +7,71 @@ import configparser
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from datetime import date
 from werkzeug.utils import secure_filename
-from tkinter import Tk, filedialog, messagebox
+from tkinter import Tk, filedialog, messagebox, simpledialog
+import requests
+import json
 import threading
 import webbrowser
 
+
 app = Flask(__name__)
+
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+LICENSE_FILE = os.path.join(BASE_PATH, 'license')
+API_URL = 'https://script.google.com/macros/s/AKfycbySf389gYwY0Enq8mXOyqr9iZiIz5kMyup9acIpB8JNRU8MwVgvXtAM4wl9CAUxprNdxQ/exec'
+API_KEY = 'asdnsiadnoienoiniopwefiefnw'
+
+def get_machine_guid():
+    if sys.platform.startswith('win'):
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\\Microsoft\\Cryptography") as key:
+                return winreg.QueryValueEx(key, "MachineGuid")[0]
+        except Exception:
+            return None
+    for path in ('/etc/machine-id', '/var/lib/dbus/machine-id'):
+        if os.path.exists(path):
+            with open(path) as f:
+                return f.read().strip()
+    return None
+
+def _deobfuscate(s: str) -> str:
+    return ''.join(chr(ord(c) - 1) for c in s)
+
+def verify_license():
+    guid = get_machine_guid()
+    if not guid:
+        return False
+    if os.path.exists(LICENSE_FILE):
+        try:
+            with open(LICENSE_FILE, 'r', encoding='utf-8') as f:
+                stored = f.read().strip()
+            return _deobfuscate(stored) == guid
+        except Exception:
+            return False
+    root = Tk()
+    root.withdraw()
+    key = simpledialog.askstring('Licenza', 'Inserisci la chiave di licenza:')
+    root.destroy()
+    if not key:
+        return False
+    payload = {
+        'api_key': API_KEY,
+        'license_key': key,
+        'machine_guid': guid,
+    }
+    try:
+        resp = requests.post(API_URL, json=payload)
+        if resp.status_code == 200:
+            data = resp.json()
+            obf = data.get('obfuscated_guid')
+            if obf:
+                with open(LICENSE_FILE, 'w', encoding='utf-8') as f:
+                    f.write(obf)
+                return _deobfuscate(obf) == guid
+    except Exception as e:
+        root = Tk(); root.withdraw(); messagebox.showerror('Errore', str(e)); root.destroy()
+    return False
 
 # Load configuration with GUI helper
 def ensure_config():
@@ -569,6 +629,8 @@ def delete_patient(pid):
 
 
 if __name__ == '__main__':
+    if not verify_license():
+        raise SystemExit('Licenza non valida.')
     init_db()
 
     def open_browser():
