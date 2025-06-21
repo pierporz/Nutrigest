@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="mb-3">Allegati {{ patient['name'] }}</h1>
+<h1 class="mb-3">Allegati {{ patient['name'] }} {{ patient['surname'] }}</h1>
 <div class="card p-3 mb-3">
 <form method="post" enctype="multipart/form-data" class="mb-3">
   <div class="input-group">

@@ -10,9 +10,11 @@
     <thead>
     <tr>
         <th>Nome<br><input class="form-control form-control-sm filter" data-col="0"></th>
-        <th>Nascita<br><input class="form-control form-control-sm filter" data-col="1"></th>
-        <th>Email<br><input class="form-control form-control-sm filter" data-col="2"></th>
-        <th>Telefono<br><input class="form-control form-control-sm filter" data-col="3"></th>
+        <th>Cognome<br><input class="form-control form-control-sm filter" data-col="1"></th>
+        <th>Nascita<br><input class="form-control form-control-sm filter" data-col="2"></th>
+        <th>Sesso<br><input class="form-control form-control-sm filter" data-col="3"></th>
+        <th>Email<br><input class="form-control form-control-sm filter" data-col="4"></th>
+        <th>Telefono<br><input class="form-control form-control-sm filter" data-col="5"></th>
         <th>Azioni</th>
     </tr>
     </thead>
@@ -20,7 +22,9 @@
     {% for p in patients %}
     <tr>
         <td>{{ p['name'] }}</td>
+        <td>{{ p['surname'] }}</td>
         <td>{{ p['birthdate'] or '' }}</td>
+        <td>{{ p['gender'] or '' }}</td>
         <td>{{ p['email'] or '' }}</td>
         <td>{{ p['phone'] or '' }}</td>
         <td>
