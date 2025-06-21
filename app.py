@@ -197,7 +197,7 @@ def change_data_dir():
 @app.route('/')
 def index():
     con = get_db()
-    patients = con.execute('SELECT * FROM patients ORDER BY name COLLATE NOCASE').fetchall()
+    patients = con.execute('SELECT * FROM patients ORDER BY surname COLLATE NOCASE, name COLLATE NOCASE').fetchall()
     con.close()
     return render_template('index.html', patients=patients)
 
@@ -207,6 +207,8 @@ def new_patient():
     con = get_db()
     if request.method == 'POST':
         name = request.form['name']
+        surname = request.form.get('surname')
+        gender = request.form.get('gender')
         fiscal = request.form.get('fiscal_code')
         birth = request.form.get('birthdate')
         email = request.form.get('email')
@@ -225,8 +227,9 @@ def new_patient():
                 notes_parts.append(f"<b>{q['text']}</b> {ans}")
         notes = '<br>'.join(notes_parts)
         cur = con.cursor()
-        cur.execute('INSERT INTO patients (name, birthdate, email, phone, fiscal_code, anamnesis) VALUES (?,?,?,?,?,?)',
-                    (name, birth, email, phone, fiscal, notes))
+        cur.execute('''INSERT INTO patients (name, surname, gender, birthdate, email, phone, fiscal_code, anamnesis)
+                        VALUES (?,?,?,?,?,?,?,?)''',
+                    (name, surname, gender, birth, email, phone, fiscal, notes))
         pid = cur.lastrowid
         cur.execute('INSERT INTO visits (patient_id, date, notes, weight, waist, hip, height, navel, custom) VALUES (?,?,?,?,?,?,?,?,?)',
                     (pid, date.today(), notes, weight, waist, hip, height, navel, custom))
@@ -589,8 +592,9 @@ def edit_patient(pid):
         con.close()
         return redirect(url_for('index'))
     if request.method == 'POST':
-        con.execute('''UPDATE patients SET name=?, birthdate=?, email=?, phone=?, fiscal_code=? WHERE id=?''',
-                    (request.form['name'], request.form.get('birthdate'), request.form.get('email'),
+        con.execute('''UPDATE patients SET name=?, surname=?, gender=?, birthdate=?, email=?, phone=?, fiscal_code=? WHERE id=?''',
+                    (request.form['name'], request.form.get('surname'), request.form.get('gender'),
+                     request.form.get('birthdate'), request.form.get('email'),
                      request.form.get('phone'), request.form.get('fiscal_code'), pid))
         con.commit()
         con.close()
@@ -609,7 +613,8 @@ def delete_patient(pid):
     error = None
     if request.method == 'POST':
         name_entered = request.form.get('confirm_name', '').strip().lower()
-        if name_entered == patient['name'].strip().lower():
+        full_name = f"{patient['name']} {patient['surname']}".strip().lower()
+        if name_entered == full_name:
             attach_rows = con.execute('SELECT filepath FROM attachments WHERE patient_id=?', (pid,)).fetchall()
             for row in attach_rows:
                 fpath = os.path.join(ATTACH_FOLDER, row['filepath'].replace('/', os.sep))

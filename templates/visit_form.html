@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1 class="mb-3">{% if visit %}Modifica visita{% else %}Nuova visita{% endif %} - {{ patient['name'] }}</h1>
+<h1 class="mb-3">{% if visit %}Modifica visita{% else %}Nuova visita{% endif %} - {{ patient['name'] }} {{ patient['surname'] }}</h1>
 <div class="card p-3">
 <form method="post">
 <div class="mb-2"><label>Data</label><input type="date" name="date" class="form-control" value="{{ visit['date'] if visit else today }}"></div>

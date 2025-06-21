@@ -3,9 +3,23 @@
 <h1 class="mb-3">Modifica Paziente</h1>
 <div class="card p-3">
 <form method="post">
+<div class="row">
+  <div class="col mb-2">
+    <label class="form-label">Nome</label>
+    <input name="name" class="form-control" value="{{ patient['name'] }}" required>
+  </div>
+  <div class="col mb-2">
+    <label class="form-label">Cognome</label>
+    <input name="surname" class="form-control" value="{{ patient['surname'] }}" required>
+  </div>
+</div>
 <div class="mb-2">
-<label class="form-label">Nome e Cognome</label>
-<input name="name" class="form-control" value="{{ patient['name'] }}" required>
+<label class="form-label">Sesso</label>
+<select name="gender" class="form-select">
+  <option value="" {% if not patient['gender'] %}selected{% endif %}>-</option>
+  <option value="M" {% if patient['gender']=='M' %}selected{% endif %}>Maschio</option>
+  <option value="F" {% if patient['gender']=='F' %}selected{% endif %}>Femmina</option>
+</select>
 </div>
 <div class="mb-2">
 <label class="form-label">Codice Fiscale</label>

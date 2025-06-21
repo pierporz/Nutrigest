@@ -3,9 +3,23 @@
 <h1 class="mb-3">Nuovo Paziente</h1>
 <div class="card p-3">
 <form method="post">
+<div class="row">
+  <div class="col mb-2">
+    <label class="form-label">Nome</label>
+    <input name="name" class="form-control" required>
+  </div>
+  <div class="col mb-2">
+    <label class="form-label">Cognome</label>
+    <input name="surname" class="form-control" required>
+  </div>
+</div>
 <div class="mb-2">
-<label class="form-label">Nome e Cognome</label>
-<input name="name" class="form-control" required>
+<label class="form-label">Sesso</label>
+<select name="gender" class="form-select">
+  <option value="">-</option>
+  <option value="M">Maschio</option>
+  <option value="F">Femmina</option>
+</select>
 </div>
 <div class="mb-2">
 <label class="form-label">Codice Fiscale</label>
