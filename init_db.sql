@@ -6,7 +6,26 @@ CREATE TABLE IF NOT EXISTS patients (
     phone TEXT,
     fiscal_code TEXT,
     anamnesis TEXT,
-    diet TEXT
+    diet TEXT,
+    surname TEXT,
+    gender TEXT,
+    address TEXT,
+    city TEXT,
+    postal_code TEXT,
+    country TEXT,
+    occupation TEXT,
+    allergies TEXT,
+    intolerances TEXT,
+    physical_activity TEXT,
+    height REAL,
+    starting_weight REAL,
+    emergency_contact TEXT,
+    emergency_phone TEXT,
+    blood_type TEXT,
+    registration_date DATE,
+    notes TEXT,
+    created_at DATE DEFAULT CURRENT_DATE,
+    updated_at DATE
 );
 
 CREATE TABLE IF NOT EXISTS visits (
@@ -20,6 +39,25 @@ CREATE TABLE IF NOT EXISTS visits (
     height REAL,
     navel REAL,
     custom TEXT,
+    systolic INTEGER,
+    diastolic INTEGER,
+    heart_rate INTEGER,
+    body_fat REAL,
+    bmi REAL,
+    muscle_mass REAL,
+    body_water REAL,
+    bone_mass REAL,
+    metabolic_age INTEGER,
+    bmr REAL,
+    blood_glucose REAL,
+    cholesterol REAL,
+    triglycerides REAL,
+    sleep_hours REAL,
+    stress_level REAL,
+    medications TEXT,
+    supplements TEXT,
+    notes_extra TEXT,
+    next_visit DATE,
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 
@@ -29,12 +67,29 @@ CREATE TABLE IF NOT EXISTS attachments (
     filename TEXT NOT NULL,
     filepath TEXT NOT NULL,
     upload_date DATE DEFAULT CURRENT_DATE,
+    description TEXT,
+    file_type TEXT,
+    file_size INTEGER,
+    mime_type TEXT,
+    category TEXT,
+    tags TEXT,
+    uploaded_by TEXT,
+    version INTEGER,
+    notes TEXT,
+    is_private INTEGER,
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 
 CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    text TEXT NOT NULL
+    text TEXT NOT NULL,
+    category TEXT,
+    required INTEGER,
+    data_type TEXT,
+    default_value TEXT,
+    help_text TEXT,
+    order_index INTEGER,
+    is_active INTEGER
 );
 CREATE TABLE IF NOT EXISTS foods (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +97,29 @@ CREATE TABLE IF NOT EXISTS foods (
     kcal REAL,
     carbs REAL,
     protein REAL,
-    fat REAL
+    fat REAL,
+    description TEXT,
+    category TEXT,
+    serving_size REAL,
+    serving_unit TEXT,
+    fiber REAL,
+    sugar REAL,
+    saturated_fat REAL,
+    monounsaturated_fat REAL,
+    polyunsaturated_fat REAL,
+    cholesterol REAL,
+    sodium REAL,
+    potassium REAL,
+    calcium REAL,
+    iron REAL,
+    vitamin_a REAL,
+    vitamin_c REAL,
+    vitamin_d REAL,
+    allergens TEXT,
+    glycemic_index REAL,
+    glycemic_load REAL,
+    notes TEXT,
+    is_custom INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS meal_plans (
@@ -52,6 +129,24 @@ CREATE TABLE IF NOT EXISTS meal_plans (
     grams REAL,
     day TEXT,        -- es: 'Lunedì'
     meal TEXT,       -- es: 'Colazione', 'Pranzo'
+    time TEXT,
+    order_index INTEGER,
+    notes TEXT,
+    recipe TEXT,
+    portion_size REAL,
+    unit TEXT,
+    instructions TEXT,
+    is_optional INTEGER,
+    category TEXT,
+    prep_time INTEGER,
+    cooking_time INTEGER,
+    total_calories REAL,
+    macros TEXT,
+    daypart TEXT,
+    location TEXT,
+    status TEXT,
+    created_at DATE DEFAULT CURRENT_DATE,
+    updated_at DATE,
     FOREIGN KEY (patient_id) REFERENCES patients(id),
     FOREIGN KEY (food_id) REFERENCES foods(id)
 );
@@ -62,5 +157,17 @@ CREATE TABLE IF NOT EXISTS obiettivi (
     cho_percent REAL NOT NULL,
     pro_percent REAL NOT NULL,
     fat_percent REAL NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    weight_goal REAL,
+    fat_goal REAL,
+    muscle_goal REAL,
+    water_goal REAL,
+    fiber_goal REAL,
+    steps_goal INTEGER,
+    sleep_goal REAL,
+    notes TEXT,
+    created_at DATE DEFAULT CURRENT_DATE,
+    updated_at DATE,
     FOREIGN KEY (patient_id) REFERENCES patients (id)
 );
