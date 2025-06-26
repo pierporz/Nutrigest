@@ -23,6 +23,8 @@ else:
 LICENSE_FILE = os.path.join(BASE_PATH, 'license')
 API_URL = 'https://script.google.com/macros/s/AKfycbx9sG0yKLNqISd5ct1rv2IwtQl4cjQFtpNO0GnMV4GLd7unD1fFxtLe7ld4R34tnRvOhg/exec'
 API_KEY = 'asdnsiadnoienoiniopwefiefnw'
+DEMO_KEY = 'DEMO'
+DEMO_MODE = False
 
 def get_machine_guid():
     if sys.platform.startswith('win'):
@@ -42,6 +44,7 @@ def _deobfuscate(s: str) -> str:
     return ''.join(chr(ord(c) - 1) for c in s)
 
 def verify_license():
+    global DEMO_MODE
     guid = get_machine_guid()
     if not guid:
         return False
@@ -49,6 +52,9 @@ def verify_license():
         try:
             with open(LICENSE_FILE, 'r', encoding='utf-8') as f:
                 stored = f.read().strip()
+            if stored == DEMO_KEY:
+                DEMO_MODE = True
+                return True
             return _deobfuscate(stored) == guid
         except Exception:
             return False
@@ -58,6 +64,11 @@ def verify_license():
     root.destroy()
     if not key:
         return False
+    if key == DEMO_KEY:
+        DEMO_MODE = True
+        with open(LICENSE_FILE, 'w', encoding='utf-8') as f:
+            f.write(DEMO_KEY)
+        return True
     payload = {
         'api_key': API_KEY,
         'license_key': key,
@@ -205,7 +216,17 @@ def index():
 @app.route('/new_patient', methods=['GET', 'POST'])
 def new_patient():
     con = get_db()
+    if DEMO_MODE:
+        c = con.execute('SELECT COUNT(*) FROM patients').fetchone()[0]
+        if c >= 4:
+            con.close()
+            return render_template('demo_limit.html')
     if request.method == 'POST':
+        if DEMO_MODE:
+            c = con.execute('SELECT COUNT(*) FROM patients').fetchone()[0]
+            if c >= 4:
+                con.close()
+                return render_template('demo_limit.html')
         name = request.form['name']
         surname = request.form.get('surname')
         gender = request.form.get('gender')
