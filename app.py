@@ -59,6 +59,7 @@ def verify_license():
         except Exception:
             return False
     root = Tk()
+    root.attributes('-topmost', True)
     root.withdraw()
     key = simpledialog.askstring('Licenza', 'Inserisci la chiave di licenza:')
     root.destroy()
@@ -84,7 +85,7 @@ def verify_license():
                     f.write(obf)
                 return _deobfuscate(obf) == guid
     except Exception as e:
-        root = Tk(); root.withdraw(); messagebox.showerror('Errore', str(e)); root.destroy()
+        root = Tk(); root.attributes('-topmost', True); root.withdraw(); messagebox.showerror('Errore', str(e)); root.destroy()
     return False
 
 # Load configuration with GUI helper
@@ -95,6 +96,7 @@ def ensure_config():
     data_dir = cfg.get('Paths', 'data_dir', fallback=None)
     if not data_dir:
         root = Tk()
+        root.attributes('-topmost', True)
         root.withdraw()
         messagebox.showinfo(
             "Configurazione",
@@ -176,6 +178,7 @@ def change_data_dir():
     global DATA_DIR, DB, ATTACH_FOLDER, config
     old_dir = DATA_DIR
     root = Tk()
+    root.attributes('-topmost', True)
     root.withdraw()
     new_dir = filedialog.askdirectory(title="Cartella dati", initialdir=old_dir)
     root.destroy()
@@ -194,12 +197,12 @@ def change_data_dir():
         DB = os.path.join(DATA_DIR, 'nutriflap.db')
         ATTACH_FOLDER = os.path.join(DATA_DIR, 'attachments')
         os.makedirs(ATTACH_FOLDER, exist_ok=True)
-        root = Tk(); root.withdraw(); messagebox.showinfo("Completato", "Cartella aggiornata"); root.destroy()
+        root = Tk(); root.attributes('-topmost', True); root.withdraw(); messagebox.showinfo("Completato", "Cartella aggiornata"); root.destroy()
     except Exception as e:
         config.set('Paths', 'data_dir', old_dir)
         with open('config.ini', 'w') as f:
             config.write(f)
-        root = Tk(); root.withdraw(); messagebox.showerror("Errore", str(e)); root.destroy()
+        root = Tk(); root.attributes('-topmost', True); root.withdraw(); messagebox.showerror("Errore", str(e)); root.destroy()
     return redirect(url_for('index'))
 
 
